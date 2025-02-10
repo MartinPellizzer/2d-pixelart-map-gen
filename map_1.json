@@ -3,7 +3,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0007.png",
                 "layer_3_filepath": ""
             },
             "row_index": 0,
@@ -12,7 +12,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0007.png",
                 "layer_3_filepath": ""
             },
             "row_index": 0,
@@ -21,7 +21,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0007.png",
                 "layer_3_filepath": ""
             },
             "row_index": 0,
@@ -30,7 +30,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0007.png",
                 "layer_3_filepath": ""
             },
             "row_index": 0,
@@ -39,7 +39,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0007.png",
                 "layer_3_filepath": ""
             },
             "row_index": 0,
@@ -48,7 +48,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0007.png",
                 "layer_3_filepath": ""
             },
             "row_index": 0,
@@ -57,7 +57,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0007.png",
                 "layer_3_filepath": ""
             },
             "row_index": 0,
@@ -66,7 +66,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0007.png",
                 "layer_3_filepath": ""
             },
             "row_index": 0,
@@ -149,7 +149,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 1,
@@ -158,7 +158,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 1,
@@ -176,7 +176,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 1,
@@ -185,7 +185,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 1,
@@ -203,7 +203,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 1,
@@ -212,7 +212,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 1,
@@ -295,7 +295,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 2,
@@ -304,7 +304,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0010.png",
                 "layer_3_filepath": ""
             },
             "row_index": 2,
@@ -322,7 +322,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 2,
@@ -330,8 +330,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 2,
@@ -339,7 +339,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -348,8 +348,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 2,
@@ -357,8 +357,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0012.png",
                 "layer_3_filepath": ""
             },
             "row_index": 2,
@@ -440,8 +440,8 @@
     [
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 3,
@@ -449,8 +449,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 3,
@@ -458,8 +458,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0011.png",
                 "layer_3_filepath": ""
             },
             "row_index": 3,
@@ -467,8 +467,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 3,
@@ -476,8 +476,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 3,
@@ -485,7 +485,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -494,8 +494,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 3,
@@ -503,8 +503,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 3,
@@ -586,8 +586,8 @@
     [
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 4,
@@ -595,8 +595,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0014.png",
                 "layer_3_filepath": ""
             },
             "row_index": 4,
@@ -604,7 +604,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -613,8 +613,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 4,
@@ -622,8 +622,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 4,
@@ -631,7 +631,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -640,8 +640,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 4,
@@ -649,8 +649,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0015.png",
                 "layer_3_filepath": ""
             },
             "row_index": 4,
@@ -732,8 +732,8 @@
     [
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 5,
@@ -741,8 +741,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 5,
@@ -750,7 +750,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -759,8 +759,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 5,
@@ -768,8 +768,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 5,
@@ -777,7 +777,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -786,8 +786,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 5,
@@ -795,8 +795,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0004.png",
                 "layer_3_filepath": ""
             },
             "row_index": 5,
@@ -878,8 +878,8 @@
     [
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0014.png",
                 "layer_3_filepath": ""
             },
             "row_index": 6,
@@ -887,8 +887,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0014.png",
                 "layer_3_filepath": ""
             },
             "row_index": 6,
@@ -896,7 +896,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -905,8 +905,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0009.png",
                 "layer_3_filepath": ""
             },
             "row_index": 6,
@@ -914,8 +914,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0006.png",
                 "layer_3_filepath": ""
             },
             "row_index": 6,
@@ -923,7 +923,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -932,8 +932,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0014.png",
                 "layer_3_filepath": ""
             },
             "row_index": 6,
@@ -941,8 +941,8 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
-                "layer_2_filepath": "",
+                "layer_1_filepath": "assets/0001.png",
+                "layer_2_filepath": "assets/0014.png",
                 "layer_3_filepath": ""
             },
             "row_index": 6,
@@ -1024,7 +1024,7 @@
     [
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0000.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -1033,7 +1033,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0000.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -1042,7 +1042,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0000.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -1051,7 +1051,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0000.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -1060,7 +1060,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0000.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -1069,7 +1069,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0000.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -1078,7 +1078,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0000.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
@@ -1087,7 +1087,7 @@
         },
         {
             "sprites": {
-                "layer_1_filepath": "",
+                "layer_1_filepath": "assets/0000.png",
                 "layer_2_filepath": "",
                 "layer_3_filepath": ""
             },
