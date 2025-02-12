@@ -888,7 +888,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0013.png",
                 "layer_3_filepath": ""
             },
             "row_index": 6,
@@ -942,7 +942,7 @@
         {
             "sprites": {
                 "layer_1_filepath": "assets/0001.png",
-                "layer_2_filepath": "",
+                "layer_2_filepath": "assets/0005.png",
                 "layer_3_filepath": ""
             },
             "row_index": 6,
