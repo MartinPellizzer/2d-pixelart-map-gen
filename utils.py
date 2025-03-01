@@ -7,3 +7,11 @@ def format_id(i):
     else: i = str(f'-1')
     return i
 
+def get_pyimg_by_path(path):
+    img = None
+    for obj in pyimgs:
+        if obj['path'] == path:
+            img = obj['img']
+            break
+    return img
+
