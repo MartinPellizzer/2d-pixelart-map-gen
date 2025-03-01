@@ -1,5 +1,10 @@
+import os 
+
 import copy
 import pygame
+
+import ai
+import utils
 
 window_w = 1920
 window_h = 1080
@@ -85,8 +90,12 @@ images_pygame = []
 def add_image_pygame(path):
     global images_pygame
     found = False
-    for image_pygame in images_pygame:
+    for i, image_pygame in enumerate(images_pygame):
         if image_pygame['path'] == path:
+            images_pygame[i] = {
+                'path': path, 
+                'img': pygame.image.load(path),
+            }
             found = True
             break
     if not found:
@@ -101,6 +110,7 @@ for i in range(level_map['row_num']):
         row.append(None)
     level_map['tiles'].append(row)
         
+'''
 level_map['tiles'][0][0] = 'assets/characters/succubus.png'
 level_map['tiles'][0][1] = 'assets/characters/zombie.png'
 level_map['tiles'][0][2] = 'assets/characters/hellhound.png'
@@ -113,7 +123,7 @@ add_image_pygame('assets/characters/hellhound.png')
 add_image_pygame('assets/characters/pharoh.png')
 add_image_pygame('assets/characters/harpy.png')
 add_image_pygame('assets/characters/slime.png')
-
+'''
 
 def clear_asset_pack():
     global assets_icons
@@ -123,7 +133,39 @@ def clear_asset_pack():
         for j in range(assets_icons['col_num']):
             row.append(None)
         assets_icons['icons'].append(row)
-        
+
+def load_asset_pack_textures_old():
+    global assets_icons
+    clear_asset_pack()
+    assets_filepaths = [f'assets/textures/{filename}' for filename in os.listdir(f'assets/textures')]
+    if assets_filepaths == []: return
+    n_assets_to_load = len(assets_filepaths)
+    k = 0
+    all_assets_loaded = False
+    for i in range(15):
+        for j in range(5):
+            assets_icons['icons'][i][j] = assets_filepaths[k]
+            add_image_pygame(assets_filepaths[k])
+            k += 1
+            if k >= n_assets_to_load: all_assets_loaded = True
+            if all_assets_loaded == True: break
+        if all_assets_loaded == True: break
+
+def load_asset_pack_textures():
+    global assets_icons
+    clear_asset_pack()
+    assets_filepaths = [f'assets/textures/{filename}' for filename in os.listdir(f'assets/textures')]
+    for i in range(15):
+        for j in range(5):
+            asset_index_cur = i*5+j
+            asset_id = utils.format_id(asset_index_cur)
+            for asset_filepath in assets_filepaths:
+                asset_filepath_id = asset_filepath.split('/')[-1].split('.')[0]
+                if asset_id in asset_filepath_id:
+                    assets_icons['icons'][i][j] = asset_filepath
+                    add_image_pygame(asset_filepath)
+                    break
+
 def load_asset_pack_characters():
     global assets_icons
     clear_asset_pack()
@@ -139,12 +181,6 @@ def load_asset_pack_characters():
     add_image_pygame('assets/characters/pharoh.png')
     add_image_pygame('assets/characters/harpy.png')
     add_image_pygame('assets/characters/slime.png')
-
-def load_asset_pack_textures():
-    global assets_icons
-    clear_asset_pack()
-    assets_icons['icons'][0][0] = 'assets/textures/grass.png'
-    add_image_pygame('assets/textures/grass.png')
 
 clear_asset_pack()
 # load_asset_pack_characters()
@@ -325,21 +361,23 @@ mouse = {
 }
 
 def click_asset_tab():
+    i = 0
     print('    frame assets tabs')
-    x1 = frame_assets_tabs['x'] + 80*0
+    x1 = frame_assets_tabs['x'] + 80*i
     y1 = frame_assets_tabs['y']
-    x2 = frame_assets_tabs['x'] + 80*0 + 80
+    x2 = frame_assets_tabs['x'] + 80*i + 80
     y2 = frame_assets_tabs['y'] + frame_assets_tabs['h']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-        print('        frame assets tab 1')
-        load_asset_pack_characters()
-    x1 = frame_assets_tabs['x'] + 80*1
-    y1 = frame_assets_tabs['y']
-    x2 = frame_assets_tabs['x'] + 80*1 + 80
-    y2 = frame_assets_tabs['y'] + frame_assets_tabs['h']
-    if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-        print('        frame assets tab 2')
+        print('        frame assets tab {i}')
         load_asset_pack_textures()
+    i += 1
+    x1 = frame_assets_tabs['x'] + 80*i
+    y1 = frame_assets_tabs['y']
+    x2 = frame_assets_tabs['x'] + 80*i + 80
+    y2 = frame_assets_tabs['y'] + frame_assets_tabs['h']
+    if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
+        print('        frame assets tab {i}')
+        load_asset_pack_characters()
 
 def click_asset_icon():
     x1 = frame_assets_icons['x']
@@ -380,6 +418,14 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RETURN:
+                ai.gen_image(
+                    assets_icons['row_active'], assets_icons['col_active'], 
+                    assets_pack='textures',
+                    prompt='pixel art, grass tile texture',
+                )
+                load_asset_pack_textures()
 
     mouse['x'], mouse['y'] = pygame.mouse.get_pos()
     mouse['left_click_cur'] = pygame.mouse.get_pressed()[0]
@@ -387,22 +433,9 @@ while running:
     if mouse['left_click_cur'] == True: # left mouse button clicked
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
-            # check if clicked an asset tab
             click_asset_tab()
             click_asset_icon()
             click_map_tile()
-            '''
-            x1 = frame_left['x']
-            y1 = frame_left['y']
-            x2 = frame_left['x'] + frame_left['w']
-            y2 = frame_left['y'] + frame_left['h']
-            if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-                print('left frame')
-                x1 = frame_assets_tabs['x']
-                y1 = frame_assets_tabs['y']
-                x2 = frame_assets_tabs['x'] + frame_assets_tabs['w']
-                y2 = frame_assets_tabs['y'] + frame_assets_tabs['h']
-            '''
     else: # left mouse button released
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
