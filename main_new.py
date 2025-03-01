@@ -355,6 +355,7 @@ def draw_main():
     draw_frame_right()
 
     draw_tile_dragging()
+    delete_tile_dragging()
     # draw
     pygame.display.flip()
 
@@ -363,6 +364,8 @@ mouse = {
     'y': 0,
     'left_click_old': -1,
     'left_click_cur': 0,
+    'right_click_old': -1,
+    'right_click_cur': 0,
 }
 
 def click_asset_tab():
@@ -430,7 +433,6 @@ def click_map_tile():
         j = level_map['col_active']
         level_map['tiles'][i][j][layer_cur] = tile_filepath
 
-# ;jump
 def draw_tile_dragging():
     if dragging == True:
         x1 = frame_map['x']
@@ -467,8 +469,44 @@ def draw_tile_dragging():
                         img = pygame.transform.scale(img, (w, h))
                         screen.blit(img, (x, y))
 
+def delete_tile_dragging():
+    if dragging_right == True:
+        x1 = frame_map['x']
+        y1 = frame_map['y']
+        x2 = frame_map['x'] + frame_map['w']
+        y2 = frame_map['y'] + frame_map['h']
+        row_index_start, col_index_start = get_tile_coords(dragging_start_x, dragging_start_y)
+        row_index_end, col_index_end = get_tile_coords(mouse['x'], mouse['y'])
+        if row_index_end < row_index_start: row_index_end = row_index_start
+        if col_index_end < col_index_start: col_index_end = col_index_start
+        
+        x = dragging_start_x
+        y = dragging_start_y
+        w = mouse['x'] - dragging_start_x
+        h = mouse['y'] - dragging_start_y
+        pygame.draw.rect(screen, '#202020', pygame.Rect(x, y, w, h))
+        pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
+
+        clear_level_map_tmp_tiles()
+
+        for i in range(level_map_tmp['row_num']):
+            for j in range(level_map_tmp['col_num']):
+                if i >= row_index_start and j >= col_index_start and i <= row_index_end and j <= col_index_end:
+                    img_path = None
+                    level_map_tmp['tiles'][i][j][layer_cur] = img_path
+                    w = tile_size*camera['zoom']
+                    h = tile_size*camera['zoom']
+                    x = frame_center['x'] + w*j + camera['x']
+                    y = frame_center['y'] + h*i + camera['y']
+                    pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,),)
+                    pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
+                else:
+                    img_path = 'do not del'
+                    level_map_tmp['tiles'][i][j][layer_cur] = img_path
+
 
 dragging = False
+dragging_right = False
 dragging_start_x = 0
 dragging_start_y = 0
 
@@ -528,7 +566,20 @@ while running:
                         level_map['tiles'][i][j][layer_cur] = img_path
 
     if mouse['right_click_cur'] == True:
-        # TODO: box select remove all tiles?
+        if mouse['right_click_old'] != mouse['right_click_cur']:
+            mouse['right_click_old'] = mouse['right_click_cur']
+            dragging_right = True
+            dragging_start_x = mouse['x']
+            dragging_start_y = mouse['y']
+    else:
+        if mouse['right_click_old'] != mouse['right_click_cur']:
+            mouse['right_click_old'] = mouse['right_click_cur']
+            dragging_right = False
+            for i in range(level_map_tmp['row_num']):
+                for j in range(level_map_tmp['col_num']):
+                    img_path = level_map_tmp['tiles'][i][j][layer_cur]
+                    if img_path != 'do not del':
+                        level_map['tiles'][i][j][layer_cur] = img_path
 
     draw_main()
 
