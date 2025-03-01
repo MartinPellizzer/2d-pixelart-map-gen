@@ -8,16 +8,16 @@ bg_model = None
 #############################################################################
 # ;ai
 #############################################################################
-'''
-def bg_remove():
-    global active_cell_row
-    global active_cell_col
-    index = active_cell_row*4+active_cell_col
-    if index < 10: i_str = f'000{index}'
-    elif index < 100: i_str = f'00{index}'
-    elif index < 1000: i_str = f'0{index}'
-    elif index < 10000: i_str = f'{index}'
+def bg_remove(row_active, col_active, assets_pack):
+    import torch
+    from PIL import Image
+    from torchvision import transforms
+    import matplotlib.pyplot as plt
+    from transformers import AutoModelForImageSegmentation
+
     global bg_model
+    image_index = row_active*5+col_active
+    index = utils.format_id(image_index)
     if not bg_model:
         bg_model = AutoModelForImageSegmentation.from_pretrained('briaai/RMBG-2.0', trust_remote_code=True)
     torch.set_float32_matmul_precision(['high', 'highest'][0])
@@ -30,7 +30,8 @@ def bg_remove():
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-    image = Image.open(f'assets-tmp/{i_str}.png')
+    asset_filepath = f'assets/{assets_pack}/{index}.png'
+    image = Image.open(asset_filepath)
     input_images = transform_image(image).unsqueeze(0).to('cuda')
     # Prediction
     with torch.no_grad():
@@ -39,20 +40,13 @@ def bg_remove():
     pred_pil = transforms.ToPILImage()(pred)
     mask = pred_pil.resize(image.size)
     image.putalpha(mask)
-    asset_filepath = f'assets-tmp/{i_str}-transparent.png'
     image.save(asset_filepath)
-'''
 
 def gen_image(row_active, col_active, assets_pack, prompt):
     import torch
     from diffusers import StableDiffusionXLPipeline
     from diffusers import StableDiffusionPipeline
     from diffusers import DPMSolverMultistepScheduler
-
-    from PIL import Image
-    from torchvision import transforms
-    import matplotlib.pyplot as plt
-    from transformers import AutoModelForImageSegmentation
 
     global pipe
     model = {

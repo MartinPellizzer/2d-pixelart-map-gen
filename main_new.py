@@ -7,10 +7,9 @@ import g
 import ai
 import utils
 
-g.WINDOW_W = 1920
-g.WINDOW_H = 1080
-
 tile_size = 32
+asset_pack_cur = ''
+layer_cur = 0
 
 assets_icons_clean = {
     'row_num': 15,
@@ -118,7 +117,7 @@ def clear_level_map_tiles():
     for i in range(level_map['row_num']):
         row = []
         for j in range(level_map['col_num']):
-            row.append(None)
+            row.append([None, None, None, None, None])
         level_map['tiles'].append(row)
         
 def clear_level_map_tmp_tiles():
@@ -126,7 +125,7 @@ def clear_level_map_tmp_tiles():
     for i in range(level_map_tmp['row_num']):
         row = []
         for j in range(level_map_tmp['col_num']):
-            row.append(None)
+            row.append([None, None, None, None, None])
         level_map_tmp['tiles'].append(row)
 
 clear_level_map_tiles()
@@ -156,29 +155,14 @@ def clear_asset_pack():
             row.append(None)
         assets_icons['icons'].append(row)
 
-def load_asset_pack_textures_old():
+def load_asset_pack(foldername):
     global assets_icons
-    clear_asset_pack()
-    assets_filepaths = [f'assets/textures/{filename}' for filename in os.listdir(f'assets/textures')]
-    if assets_filepaths == []: return
-    n_assets_to_load = len(assets_filepaths)
-    k = 0
-    all_assets_loaded = False
-    for i in range(15):
-        for j in range(5):
-            assets_icons['icons'][i][j] = assets_filepaths[k]
-            add_image_pygame(assets_filepaths[k])
-            k += 1
-            if k >= n_assets_to_load: all_assets_loaded = True
-            if all_assets_loaded == True: break
-        if all_assets_loaded == True: break
-
-def load_asset_pack_textures():
-    global assets_icons
+    global asset_pack_cur
+    asset_pack_cur = foldername
     row_active = assets_icons['row_active']
     col_active = assets_icons['col_active']
     clear_asset_pack()
-    assets_filepaths = [f'assets/textures/{filename}' for filename in os.listdir(f'assets/textures')]
+    assets_filepaths = [f'assets/{foldername}/{filename}' for filename in os.listdir(f'assets/{foldername}')]
     for i in range(15):
         for j in range(5):
             asset_index_cur = i*5+j
@@ -192,26 +176,7 @@ def load_asset_pack_textures():
     assets_icons['row_active'] = row_active
     assets_icons['col_active'] = col_active
 
-def load_asset_pack_characters():
-    global assets_icons
-    clear_asset_pack()
-    assets_icons['icons'][0][0] = 'assets/characters/succubus.png'
-    assets_icons['icons'][0][1] = 'assets/characters/zombie.png'
-    assets_icons['icons'][0][2] = 'assets/characters/hellhound.png'
-    assets_icons['icons'][0][3] = 'assets/characters/pharoh.png'
-    assets_icons['icons'][0][4] = 'assets/characters/harpy.png'
-    assets_icons['icons'][1][0] = 'assets/characters/slime.png'
-    add_image_pygame('assets/characters/succubus.png')
-    add_image_pygame('assets/characters/zombie.png')
-    add_image_pygame('assets/characters/hellhound.png')
-    add_image_pygame('assets/characters/pharoh.png')
-    add_image_pygame('assets/characters/harpy.png')
-    add_image_pygame('assets/characters/slime.png')
-
 clear_asset_pack()
-# load_asset_pack_characters()
-# load_asset_pack_textures()
-print(assets_icons)
 
 def get_pyimg_by_path(path):
     img = None
@@ -297,7 +262,16 @@ def draw_frame_left():
 def draw_map_tiles():
     for i in range(level_map['row_num']):
         for j in range(level_map['col_num']):
-            img_path = level_map['tiles'][i][j]
+            img_path = level_map['tiles'][i][j][0]
+            if img_path != None:
+                img = get_pyimg_by_path(img_path)
+                w = tile_size*camera['zoom']
+                h = tile_size*camera['zoom']
+                x = frame_center['x'] + w*j + camera['x']
+                y = frame_center['y'] + h*i + camera['y']
+                img = pygame.transform.scale(img, (w, h))
+                screen.blit(img, (x, y))
+            img_path = level_map['tiles'][i][j][1]
             if img_path != None:
                 img = get_pyimg_by_path(img_path)
                 w = tile_size*camera['zoom']
@@ -392,6 +366,7 @@ mouse = {
 }
 
 def click_asset_tab():
+    global layer_cur
     i = 0
     print('    frame assets tabs')
     x1 = frame_assets_tabs['x'] + 80*i
@@ -400,7 +375,8 @@ def click_asset_tab():
     y2 = frame_assets_tabs['y'] + frame_assets_tabs['h']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
         print('        frame assets tab {i}')
-        load_asset_pack_textures()
+        load_asset_pack('textures')
+        layer_cur = 0
     i += 1
     x1 = frame_assets_tabs['x'] + 80*i
     y1 = frame_assets_tabs['y']
@@ -408,7 +384,8 @@ def click_asset_tab():
     y2 = frame_assets_tabs['y'] + frame_assets_tabs['h']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
         print('        frame assets tab {i}')
-        load_asset_pack_characters()
+        load_asset_pack('characters')
+        layer_cur = 1
 
 def click_asset_icon():
     x1 = frame_assets_icons['x']
@@ -451,7 +428,7 @@ def click_map_tile():
 
         i = level_map['row_active']
         j = level_map['col_active']
-        level_map['tiles'][i][j] = tile_filepath
+        level_map['tiles'][i][j][layer_cur] = tile_filepath
 
 # ;jump
 def draw_tile_dragging():
@@ -464,9 +441,6 @@ def draw_tile_dragging():
         row_index_end, col_index_end = get_tile_coords(mouse['x'], mouse['y'])
         if row_index_end < row_index_start: row_index_end = row_index_start
         if col_index_end < col_index_start: col_index_end = col_index_start
-        print(row_index_start, col_index_start)
-        print(row_index_end, col_index_end)
-        print()
         
         x = dragging_start_x
         y = dragging_start_y
@@ -483,7 +457,7 @@ def draw_tile_dragging():
                     asset_row_cur = assets_icons['row_active']
                     asset_col_cur = assets_icons['col_active']
                     img_path = assets_icons['icons'][asset_row_cur][asset_col_cur]
-                    level_map_tmp['tiles'][i][j] = img_path
+                    level_map_tmp['tiles'][i][j][layer_cur] = img_path
                     if img_path != None:
                         img = get_pyimg_by_path(img_path)
                         w = tile_size*camera['zoom']
@@ -505,15 +479,30 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                ai.gen_image(
-                    assets_icons['row_active'], assets_icons['col_active'], 
-                    assets_pack='textures',
-                    prompt='pixel art, grass tile texture',
-                )
-                load_asset_pack_textures()
+                if asset_pack_cur == 'characters':
+                    ai.gen_image(
+                        assets_icons['row_active'], assets_icons['col_active'], 
+                        assets_pack='characters',
+                        prompt='pixel art, 1girl, chibi, succubus',
+                    )
+                    ai.bg_remove(
+                        assets_icons['row_active'], assets_icons['col_active'], 
+                        assets_pack='characters',
+                    )
+                    load_asset_pack('characters')
+                elif asset_pack_cur == 'textures':
+                    ai.gen_image(
+                        assets_icons['row_active'], assets_icons['col_active'], 
+                        assets_pack='textures',
+                        prompt='pixel art, grass tile texture',
+                    )
+                    load_asset_pack('textures')
+                else:
+                    load_asset_pack('')
 
     mouse['x'], mouse['y'] = pygame.mouse.get_pos()
     mouse['left_click_cur'] = pygame.mouse.get_pressed()[0]
+    mouse['right_click_cur'] = pygame.mouse.get_pressed()[2]
 
     # mouse left
     if mouse['left_click_cur'] == True:
@@ -534,9 +523,12 @@ while running:
             dragging = False
             for i in range(level_map_tmp['row_num']):
                 for j in range(level_map_tmp['col_num']):
-                    img_path = level_map_tmp['tiles'][i][j]
+                    img_path = level_map_tmp['tiles'][i][j][layer_cur]
                     if img_path != None:
-                        level_map['tiles'][i][j] = img_path
+                        level_map['tiles'][i][j][layer_cur] = img_path
+
+    if mouse['right_click_cur'] == True:
+        # TODO: box select remove all tiles?
 
     draw_main()
 
