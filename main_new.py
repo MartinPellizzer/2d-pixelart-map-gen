@@ -1,9 +1,11 @@
 import os 
+import json
 
 import copy
 import pygame
 
 import g
+import f
 import ai
 import utils
 
@@ -11,7 +13,17 @@ tile_size = 32
 asset_pack_cur = ''
 layer_cur = 0
 
-assets_icons_clean = {
+asset_pack_name = f'characters'
+asset_pack_folderpath = f'assets/{asset_pack_name}'
+asset_pack_images_folderpath = f'{asset_pack_folderpath}/images'
+asset_pack_jsons_folderpath = f'{asset_pack_folderpath}/jsons'
+asset_pack_images_filepaths = [f'{asset_pack_images_folderpath}/{filename}' for filename in os.listdir(asset_pack_images_folderpath)]
+asset_pack_jsons_filepaths = [f'{asset_pack_jsons_folderpath}/{filename}' for filename in os.listdir(asset_pack_jsons_folderpath)]
+
+print(asset_pack_images_filepaths)
+print(asset_pack_jsons_filepaths)
+
+pannel_assets_clean = {
     'row_num': 15,
     'col_num': 5,
     'icon_size': 64,
@@ -20,7 +32,17 @@ assets_icons_clean = {
     'icons': [],
 }
 
-assets_icons = copy.deepcopy(assets_icons_clean)
+# pannel_assets = copy.deepcopy(pannel_assets_clean)
+
+pannel_assets = {
+    'row_num': 15,
+    'col_num': 5,
+    'icon_size': 64,
+    'row_active': 0,
+    'col_active': 0,
+    'icons': [],
+}
+
 
 ex_tile = {
     'image_path': '',
@@ -53,13 +75,6 @@ camera = {
     'zoom': 4,
 }
 
-frame_left = {
-    'x': 0,
-    'y': 0,
-    'w': 320,
-    'h': g.WINDOW_H,
-}
-
 frame_assets_tabs = {
     'x': 0,
     'y': 0,
@@ -67,25 +82,18 @@ frame_assets_tabs = {
     'h': 30,
 }
 
-frame_assets_icons = {
+frame_pannel_assets = {
     'x': 0,
     'y': frame_assets_tabs['h'],
-    'w': assets_icons['icon_size'] * assets_icons['col_num'],
-    'h': assets_icons['icon_size'] * assets_icons['row_num'],
+    'w': pannel_assets['icon_size'] * pannel_assets['col_num'],
+    'h': pannel_assets['icon_size'] * pannel_assets['row_num'],
 }
 
-frame_right = {
-    'x': 0,
-    'y': 0,
-    'w': 320,
-    'h': g.WINDOW_H,
-}
-frame_right['x'] = g.WINDOW_W - frame_right['w']
 
 frame_center = {
-    'x': frame_left['w'],
+    'x': f.left['w'],
     'y': 0,
-    'w': g.WINDOW_W - frame_left['w'] - frame_right['w'],
+    'w': g.WINDOW_W - f.left['w'] - f.right['w'],
     'h': g.WINDOW_H,
 }
 
@@ -138,22 +146,54 @@ clear_level_map_tiles()
 clear_level_map_tmp_tiles()
 
 def clear_asset_pack():
-    global assets_icons
-    assets_icons = copy.deepcopy(assets_icons_clean)
-    for i in range(assets_icons['row_num']):
+    global pannel_assets
+    pannel_assets = copy.deepcopy(pannel_assets_clean)
+    for i in range(pannel_assets['row_num']):
         row = []
-        for j in range(assets_icons['col_num']):
-            row.append({'asset_filepath': None, 'x_offset': 0, 'y_offset': 0})
-        assets_icons['icons'].append(row)
+        for j in range(pannel_assets['col_num']):
+            row.append({'image_filepath': None, 'x_offset': 0, 'y_offset': 0})
+        pannel_assets['icons'].append(row)
 
 def load_asset_pack(foldername):
-    global assets_icons
+    global pannel_assets
     global asset_pack_cur
     asset_pack_cur = foldername
-    row_active = assets_icons['row_active']
-    col_active = assets_icons['col_active']
+
+    pannel_assets['icons'] = []
+    for i in range(pannel_assets['row_num']):
+        row = []
+        for j in range(pannel_assets['col_num']):
+            row.append({'image_filepath': None, 'x_offset': 0, 'y_offset': 0})
+        pannel_assets['icons'].append(row)
+
+    assets_filepaths = [f'assets/{foldername}/jsons/{filename}' for filename in os.listdir(f'assets/{foldername}/jsons')]
+    for i in range(pannel_assets['row_num']):
+        for j in range(pannel_assets['col_num']):
+            asset_index_cur = i*pannel_assets['col_num']+j
+            asset_id = utils.format_id(asset_index_cur)
+            for asset_filepath in assets_filepaths:
+                asset_filepath_id = asset_filepath.split('/')[-1].split('.')[0]
+                if asset_id in asset_filepath_id:
+                    with open(asset_filepath) as f: 
+                        json_asset = json.load(f)
+                    image_filepath = json_asset['image_filepath']
+                    x_offset = json_asset['x_offset']
+                    y_offset = json_asset['y_offset']
+                    if foldername == 'characters':
+                        pannel_assets['icons'][i][j] = {'image_filepath': image_filepath, 'x_offset': x_offset, 'y_offset': y_offset}
+                    else:
+                        pannel_assets['icons'][i][j] = {'image_filepath': image_filepath, 'x_offset': 0, 'y_offset': 0}
+                    add_image_pygame(image_filepath)
+                    break
+
+def load_asset_pack_old(foldername):
+    global pannel_assets
+    global asset_pack_cur
+    asset_pack_cur = foldername
+    row_active = pannel_assets['row_active']
+    col_active = pannel_assets['col_active']
     clear_asset_pack()
-    assets_filepaths = [f'assets/{foldername}/{filename}' for filename in os.listdir(f'assets/{foldername}')]
+    assets_filepaths = [f'assets/{foldername}/images/{filename}' for filename in os.listdir(f'assets/{foldername}/images')]
     for i in range(15):
         for j in range(5):
             asset_index_cur = i*5+j
@@ -163,13 +203,13 @@ def load_asset_pack(foldername):
                 if asset_id in asset_filepath_id:
                     if foldername == 'characters':
                         y_offset = (-tile_size*camera['zoom'])//4
-                        assets_icons['icons'][i][j] = {'asset_filepath': asset_filepath, 'x_offset': 0, 'y_offset': y_offset}
+                        pannel_assets['icons'][i][j] = {'image_filepath': asset_filepath, 'x_offset': 0, 'y_offset': y_offset}
                     else:
-                        assets_icons['icons'][i][j] = {'asset_filepath': asset_filepath, 'x_offset': 0, 'y_offset': 0}
+                        pannel_assets['icons'][i][j] = {'image_filepath': asset_filepath, 'x_offset': 0, 'y_offset': 0}
                     add_image_pygame(asset_filepath)
                     break
-    assets_icons['row_active'] = row_active
-    assets_icons['col_active'] = col_active
+    pannel_assets['row_active'] = row_active
+    pannel_assets['col_active'] = col_active
 
 clear_asset_pack()
 
@@ -207,59 +247,59 @@ def draw_frame_left_tabs():
 
 def draw_frame_left_icons():
     # draw icons background
-    for row_num in range(assets_icons['row_num']):
-        for col_num in range(assets_icons['col_num']):
+    for row_num in range(pannel_assets['row_num']):
+        for col_num in range(pannel_assets['col_num']):
             # background
-            x = frame_assets_icons['x'] + assets_icons['icon_size']*col_num + 1
-            y = frame_assets_icons['y'] + assets_icons['icon_size']*row_num + 1
-            w = assets_icons['icon_size'] - 1
-            h = assets_icons['icon_size'] - 1
+            x = frame_pannel_assets['x'] + pannel_assets['icon_size']*col_num + 1
+            y = frame_pannel_assets['y'] + pannel_assets['icon_size']*row_num + 1
+            w = pannel_assets['icon_size'] - 1
+            h = pannel_assets['icon_size'] - 1
             pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
     # draw icons images
-    for i in range(assets_icons['row_num']):
-        for j in range(assets_icons['col_num']):
-            img_path = assets_icons['icons'][i][j]['asset_filepath']
+    for i in range(pannel_assets['row_num']):
+        for j in range(pannel_assets['col_num']):
+            img_path = pannel_assets['icons'][i][j]['image_filepath']
             if img_path != None:
                 img = get_pyimg_by_path(img_path)
-                img = pygame.transform.scale(img, (assets_icons['icon_size'], assets_icons['icon_size']))
-                x = frame_assets_icons['x'] + assets_icons['icon_size']*j
-                y = frame_assets_icons['y'] + assets_icons['icon_size']*i
+                img = pygame.transform.scale(img, (pannel_assets['icon_size'], pannel_assets['icon_size']))
+                x = frame_pannel_assets['x'] + pannel_assets['icon_size']*j
+                y = frame_pannel_assets['y'] + pannel_assets['icon_size']*i
                 screen.blit(img, (x, y))
     # draw icons outline active cell
-    for row_num in range(assets_icons['row_num']):
-        for col_num in range(assets_icons['col_num']):
-            if row_num == assets_icons['row_active'] and col_num == assets_icons['col_active']:
-                x = frame_assets_icons['x'] + assets_icons['icon_size']*col_num + 1
-                y = frame_assets_icons['y'] + assets_icons['icon_size']*row_num + 1
-                w = assets_icons['icon_size'] - 1
-                h = assets_icons['icon_size'] - 1
+    for row_num in range(pannel_assets['row_num']):
+        for col_num in range(pannel_assets['col_num']):
+            if row_num == pannel_assets['row_active'] and col_num == pannel_assets['col_active']:
+                x = frame_pannel_assets['x'] + pannel_assets['icon_size']*col_num + 1
+                y = frame_pannel_assets['y'] + pannel_assets['icon_size']*row_num + 1
+                w = pannel_assets['icon_size'] - 1
+                h = pannel_assets['icon_size'] - 1
                 pygame.draw.rect(screen, '#ff00ff', pygame.Rect(x, y, w, h), 1,)
     # outline frame icons
-    x = frame_assets_icons['x']
-    y = frame_assets_icons['y']
-    w = frame_assets_icons['w']
-    h = frame_assets_icons['h']
+    x = frame_pannel_assets['x']
+    y = frame_pannel_assets['y']
+    w = frame_pannel_assets['w']
+    h = frame_pannel_assets['h']
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h,), 1,)
 
 def draw_frame_left():
     pygame.draw.rect(
         screen, '#202020', 
-        pygame.Rect(frame_assets_icons['x'], frame_assets_icons['y'], frame_assets_icons['w'], frame_assets_icons['h'])
+        pygame.Rect(frame_pannel_assets['x'], frame_pannel_assets['y'], frame_pannel_assets['w'], frame_pannel_assets['h'])
     )
     draw_frame_left_tabs()
     draw_frame_left_icons()
-    x = frame_left['x']
-    y = frame_left['y']
-    w = frame_left['w']
-    h = frame_left['h']
+    x = f.left['x']
+    y = f.left['y']
+    w = f.left['w']
+    h = f.left['h']
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
 
 def get_icon_by_filepath(filepath):
     icon = None
-    for i in range(assets_icons['row_num']):
-        for j in range(assets_icons['col_num']):
-            asset_icon = assets_icons['icons'][i][j]
-            if filepath == asset_icon['asset_filepath']:
+    for i in range(pannel_assets['row_num']):
+        for j in range(pannel_assets['col_num']):
+            asset_icon = pannel_assets['icons'][i][j]
+            if filepath == asset_icon['image_filepath']:
                 icon = asset_icon
                 break
     return icon
@@ -311,10 +351,10 @@ def draw_map_grid():
             screen.blit(text_surface, (x, y))
 
 def draw_frame_right():
-    x = frame_right['x']
-    y = frame_right['y']
-    w = frame_right['w']
-    h = frame_right['h']
+    x = f.right['x']
+    y = f.right['y']
+    w = f.right['w']
+    h = f.right['h']
     pygame.draw.rect(screen, '#202020', pygame.Rect(x, y, w, h))
     draw_debug()
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
@@ -333,10 +373,10 @@ def get_map_tile_coords():
     
 
 def draw_debug():
-    x = frame_right['x']
-    y = frame_right['y']
-    w = frame_right['w']
-    h = frame_right['h']
+    x = f.right['x']
+    y = f.right['y']
+    w = f.right['w']
+    h = f.right['h']
     font = pygame.font.SysFont('Arial', 24)
     y += 24
     text_surface = font.render(f'{mouse["x"]} - {mouse["y"]}', False, (255, 0, 255))
@@ -400,15 +440,15 @@ def click_asset_tab():
         layer_cur = 1
 
 def click_asset_icon():
-    x1 = frame_assets_icons['x']
-    y1 = frame_assets_icons['y']
-    x2 = frame_assets_icons['x'] + frame_assets_icons['w']
-    y2 = frame_assets_icons['y'] + frame_assets_icons['h']
+    x1 = frame_pannel_assets['x']
+    y1 = frame_pannel_assets['y']
+    x2 = frame_pannel_assets['x'] + frame_pannel_assets['w']
+    y2 = frame_pannel_assets['y'] + frame_pannel_assets['h']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-        col_index = (mouse['x'] - frame_assets_icons['x']) // assets_icons['icon_size']
-        assets_icons['col_active'] = col_index
-        row_index = (mouse['y'] - frame_assets_icons['y']) // assets_icons['icon_size']
-        assets_icons['row_active'] = row_index
+        col_index = (mouse['x'] - frame_pannel_assets['x']) // pannel_assets['icon_size']
+        pannel_assets['col_active'] = col_index
+        row_index = (mouse['y'] - frame_pannel_assets['y']) // pannel_assets['icon_size']
+        pannel_assets['row_active'] = row_index
 
 def get_tile_coords(x, y):
     col_index = (x - frame_center['x']) // (tile_size*camera['zoom'])
@@ -431,9 +471,9 @@ def click_map_tile():
         print(row_index)
         level_map['row_active'] = row_index
 
-        i = assets_icons['row_active']
-        j = assets_icons['col_active']
-        tile_filepath = assets_icons['icons'][i][j]['asset_filepath']
+        i = pannel_assets['row_active']
+        j = pannel_assets['col_active']
+        tile_filepath = pannel_assets['icons'][i][j]['image_filepath']
 
         i = level_map['row_active']
         j = level_map['col_active']
@@ -462,9 +502,9 @@ def draw_tile_dragging():
         for i in range(level_map_tmp['row_num']):
             for j in range(level_map_tmp['col_num']):
                 if i >= row_index_start and j >= col_index_start and i <= row_index_end and j <= col_index_end:
-                    asset_row_cur = assets_icons['row_active']
-                    asset_col_cur = assets_icons['col_active']
-                    img_path = assets_icons['icons'][asset_row_cur][asset_col_cur]['asset_filepath']
+                    asset_row_cur = pannel_assets['row_active']
+                    asset_col_cur = pannel_assets['col_active']
+                    img_path = pannel_assets['icons'][asset_row_cur][asset_col_cur]['image_filepath']
                     level_map_tmp['tiles'][i][j][layer_cur] = img_path
                     if img_path != None:
                         img = get_pyimg_by_path(img_path)
@@ -523,20 +563,34 @@ while running:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
+                print('generating img...')
                 if asset_pack_cur == 'characters':
-                    ai.gen_image(
-                        assets_icons['row_active'], assets_icons['col_active'], 
+                    image = ai.gen_image(
+                        pannel_assets['row_active'], pannel_assets['col_active'], 
                         assets_pack='characters',
                         prompt='pixel art, 1girl, chibi, succubus',
                     )
+                    image_index = pannel_assets['row_active']*5+pannel_assets['col_active']
+                    image_index = utils.format_id(image_index)
+                    image_filepath = f'assets/characters/images/{image_index}.png'
+                    image.save(image_filepath)
+                    data = {
+                        'image_filepath': image_filepath,
+                        'x_offset': 0,
+                        'y_offset': 0,
+                    }
+                    utils.json_write(f'assets/characters/jsons/{image_index}.json', data)
+                    '''
                     ai.bg_remove(
-                        assets_icons['row_active'], assets_icons['col_active'], 
+                        pannel_assets['row_active'], pannel_assets['col_active'], 
                         assets_pack='characters',
                     )
+                    '''
                     load_asset_pack('characters')
+                    
                 elif asset_pack_cur == 'textures':
                     ai.gen_image(
-                        assets_icons['row_active'], assets_icons['col_active'], 
+                        pannel_assets['row_active'], pannel_assets['col_active'], 
                         assets_pack='textures',
                         prompt='pixel art, grass tile texture',
                     )

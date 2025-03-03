@@ -74,6 +74,4 @@ def gen_image(row_active, col_active, assets_pack, prompt):
         num_inference_steps=20, 
         guidance_scale=7.0
     ).images[0]
-    image_index = row_active*5+col_active
-    image_index = utils.format_id(image_index)
-    image.save(f'assets/{assets_pack}/{image_index}.png')
+    return image

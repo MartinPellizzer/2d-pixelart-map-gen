@@ -1,3 +1,4 @@
+import json
 
 def format_id(i):
     if i < 10: i = str(f'000{i}')
@@ -6,4 +7,9 @@ def format_id(i):
     elif i < 10000: i = str(f'{i}')
     else: i = str(f'-1')
     return i
+
+def json_write(filepath, data):
+    j = json.dumps(data, indent=4)
+    with open(filepath, 'w') as f:
+        print(j, file=f)
 
