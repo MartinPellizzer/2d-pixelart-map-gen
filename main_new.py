@@ -23,6 +23,7 @@ asset_pack_jsons_filepaths = [f'{asset_pack_jsons_folderpath}/{filename}' for fi
 print(asset_pack_images_filepaths)
 print(asset_pack_jsons_filepaths)
 
+
 pannel_assets_clean = {
     'row_num': 15,
     'col_num': 5,
@@ -102,6 +103,17 @@ frame_map = {
     'y': frame_center['y'],
     'w': level_map['col_num'] * tile_size*camera['zoom'],
     'h': level_map['row_num'] * tile_size*camera['zoom'],
+}
+
+frame_prompt = {
+    'x': 0,
+    'y': frame_pannel_assets['y'] + frame_pannel_assets['h'],
+    'w': pannel_assets['icon_size'] * pannel_assets['col_num'],
+    'h': 30,
+}
+
+prompt = {
+    'text': 'pixel art, ',
 }
 
 #######################################
@@ -227,9 +239,9 @@ def get_pyimg_by_path(path):
 pygame.init()
 
 screen = pygame.display.set_mode([g.WINDOW_W, g.WINDOW_H])
+font_arial_16 = pygame.font.SysFont('Arial', 16)
 
 def draw_frame_left_tabs():
-    font = pygame.font.SysFont('Arial', 16)
     x = frame_assets_tabs['x']
     y = frame_assets_tabs['y']
     w = frame_assets_tabs['w']
@@ -242,7 +254,7 @@ def draw_frame_left_tabs():
         x = frame_assets_tabs['x'] + tab_w*tab_i
         y = frame_assets_tabs['y']
         pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, tab_w, h), 1)
-        text_surface = font.render(f'pack {tab_i}', False, (255, 255, 255))
+        text_surface = font_arial_16.render(f'pack {tab_i}', False, (255, 255, 255))
         screen.blit(text_surface, (x + 10, y + 5))
 
 def draw_frame_left_icons():
@@ -281,6 +293,15 @@ def draw_frame_left_icons():
     h = frame_pannel_assets['h']
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h,), 1,)
 
+def draw_frame_left_prompt():
+    x = frame_prompt['x']
+    y = frame_prompt['y']
+    w = frame_prompt['w']
+    h = frame_prompt['h']
+    pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h,), 1,)
+    text_surface = font_arial_16.render(prompt['text'], False, (255, 255, 255))
+    screen.blit(text_surface, (x, y))
+
 def draw_frame_left():
     pygame.draw.rect(
         screen, '#202020', 
@@ -293,6 +314,7 @@ def draw_frame_left():
     w = f.left['w']
     h = f.left['h']
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
+    draw_frame_left_prompt()
 
 def get_icon_by_filepath(filepath):
     icon = None
@@ -391,7 +413,7 @@ def draw_debug():
     text_surface = font.render(f'MAP CELL ACTIVE: {i} / {j}', False, (255, 0, 255))
     screen.blit(text_surface, (x, y))
 
-def draw_main():
+def manage_draw():
     # window bg
     screen.fill('#101010')
 
@@ -556,48 +578,83 @@ dragging_right = False
 dragging_start_x = 0
 dragging_start_y = 0
 
-running = True
-while running:
+
+def gen_asset(asset_pack_name):
+    image = ai.gen_image(
+        pannel_assets['row_active'], pannel_assets['col_active'], 
+        assets_pack=asset_pack_cur,
+        prompt=prompt['text']
+    )
+    image_index = pannel_assets['row_active']*5+pannel_assets['col_active']
+    image_index = utils.format_id(image_index)
+    image_filepath = f'assets/{asset_pack_cur}/images/{image_index}.png'
+    image.save(image_filepath)
+    data = {
+        'image_filepath': image_filepath,
+        'x_offset': 0,
+        'y_offset': 0,
+    }
+    utils.json_write(f'assets/{asset_pack_cur}/jsons/{image_index}.json', data)
+    load_asset_pack(f'{asset_pack_cur}')
+        
+def gen_asset_alpha(asset_pack_name):
+    image = ai.gen_image(
+        pannel_assets['row_active'], pannel_assets['col_active'], 
+        assets_pack=asset_pack_cur,
+        prompt=prompt['text']
+    )
+    image_index = pannel_assets['row_active']*5+pannel_assets['col_active']
+    image_index = utils.format_id(image_index)
+    image_filepath = f'assets/{asset_pack_cur}/images/{image_index}.png'
+    image.save(image_filepath)
+    data = {
+        'image_filepath': image_filepath,
+        'x_offset': 0,
+        'y_offset': 0,
+    }
+    utils.json_write(f'assets/{asset_pack_cur}/jsons/{image_index}.json', data)
+
+    image = ai.bg_remove(
+        pannel_assets['row_active'], pannel_assets['col_active'], 
+        assets_pack=f'{asset_pack_cur}',
+    )
+    image_index = pannel_assets['row_active']*5+pannel_assets['col_active']
+    image_index = utils.format_id(image_index)
+    image_filepath = f'assets/{asset_pack_cur}/images/{image_index}.png'
+    image.save(image_filepath)
+    data = {
+        'image_filepath': image_filepath,
+        'x_offset': 0,
+        'y_offset': 0,
+    }
+    utils.json_write(f'assets/{asset_pack_cur}/jsons/{image_index}.json', data)
+
+    load_asset_pack(f'{asset_pack_cur}')
+
+def manage_inputs():
+    global running
+    global prompt
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                print('generating img...')
-                if asset_pack_cur == 'characters':
-                    image = ai.gen_image(
-                        pannel_assets['row_active'], pannel_assets['col_active'], 
-                        assets_pack='characters',
-                        prompt='pixel art, 1girl, chibi, succubus',
-                    )
-                    image_index = pannel_assets['row_active']*5+pannel_assets['col_active']
-                    image_index = utils.format_id(image_index)
-                    image_filepath = f'assets/characters/images/{image_index}.png'
-                    image.save(image_filepath)
-                    data = {
-                        'image_filepath': image_filepath,
-                        'x_offset': 0,
-                        'y_offset': 0,
-                    }
-                    utils.json_write(f'assets/characters/jsons/{image_index}.json', data)
-                    '''
-                    ai.bg_remove(
-                        pannel_assets['row_active'], pannel_assets['col_active'], 
-                        assets_pack='characters',
-                    )
-                    '''
-                    load_asset_pack('characters')
-                    
-                elif asset_pack_cur == 'textures':
-                    ai.gen_image(
-                        pannel_assets['row_active'], pannel_assets['col_active'], 
-                        assets_pack='textures',
-                        prompt='pixel art, grass tile texture',
-                    )
-                    load_asset_pack('textures')
-                else:
-                    load_asset_pack('')
+                if asset_pack_cur == 'textures':
+                    gen_asset(asset_pack_name)
+                elif asset_pack_cur == 'characters':
+                    gen_asset_alpha(asset_pack_name)
+            elif event.key == pygame.K_ESCAPE:
+                running = False
+            elif event.key == pygame.K_BACKSPACE:
+                prompt['text'] = prompt['text'][:-1]
+            elif event.key == pygame.K_SPACE:
+                prompt['text'] += ' '
+            else:
+                key_name = pygame.key.name(event.key)
+                prompt['text'] += key_name
 
+running = True
+while running:
     mouse['x'], mouse['y'] = pygame.mouse.get_pos()
     mouse['left_click_cur'] = pygame.mouse.get_pressed()[0]
     mouse['right_click_cur'] = pygame.mouse.get_pressed()[2]
@@ -641,6 +698,7 @@ while running:
                     if img_path != 'do not del':
                         level_map['tiles'][i][j][layer_cur] = img_path
 
-    draw_main()
+    manage_inputs()
+    manage_draw()
 
 pygame.quit()

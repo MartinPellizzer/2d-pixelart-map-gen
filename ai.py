@@ -30,7 +30,7 @@ def bg_remove(row_active, col_active, assets_pack):
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
-    asset_filepath = f'assets/{assets_pack}/{index}.png'
+    asset_filepath = f'assets/{assets_pack}/images/{index}.png'
     image = Image.open(asset_filepath)
     input_images = transform_image(image).unsqueeze(0).to('cuda')
     # Prediction
@@ -40,7 +40,7 @@ def bg_remove(row_active, col_active, assets_pack):
     pred_pil = transforms.ToPILImage()(pred)
     mask = pred_pil.resize(image.size)
     image.putalpha(mask)
-    image.save(asset_filepath)
+    return image
 
 def gen_image(row_active, col_active, assets_pack, prompt):
     import torch
@@ -75,3 +75,4 @@ def gen_image(row_active, col_active, assets_pack, prompt):
         guidance_scale=7.0
     ).images[0]
     return image
+
