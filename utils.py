@@ -13,3 +13,8 @@ def json_write(filepath, data):
     with open(filepath, 'w') as f:
         print(j, file=f)
 
+def json_read(filepath):
+    with open(filepath) as f:
+        data = json.load(f)
+    return data
+    
