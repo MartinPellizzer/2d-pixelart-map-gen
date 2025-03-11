@@ -17,6 +17,13 @@ frame_left = {
     'h': g.WINDOW_H,
 }
 
+frame_center = {
+    'x': 320,
+    'y': 0,
+    'w': g.WINDOW_W - 320,
+    'h': g.WINDOW_H,
+}
+
 pannel_assets = {
     'x': 0,
     'y': 0,
@@ -29,8 +36,21 @@ pannel_assets = {
     'row_cur': 0,
 }
 
+pannel_tiles = {
+    'x': frame_center['x'],
+    'y': frame_center['y'],
+    'w': frame_center['w'],
+    'h': frame_center['h'],
+    'col_n': 7,
+    'row_n': 7,
+    'tile_size': 128,
+    'col_cur': 0,
+    'row_cur': 0,
+}
+
 assets = []
 pyimgs = []
+tiles = []
 
 # asset:
 #       json
@@ -96,9 +116,6 @@ for asset_json in assets_jsons:
     print(asset_json)
 print(pyimgs)
 
-asset_json = asset_json_by_id('0005')
-print(asset_json)
-
 def inputs_keyboard():
     global running
     for event in pygame.event.get():
@@ -108,10 +125,10 @@ def inputs_keyboard():
             if event.key == pygame.K_ESCAPE:
                 running = False
 
-def inputs():
+def inputs_manager():
     inputs_keyboard()
 
-def update():
+def update_manager():
     pass
 
 def draw_frame_assets_grid():
@@ -150,9 +167,39 @@ def draw_frame_left():
     draw_frame_assets()
 
 def draw_frame_center():
-    pass
+    x = frame_center['x']
+    y = frame_center['y']
+    w = frame_center['w']
+    h = frame_center['h']
+    pygame.draw.rect(screen, '#101010', (x, y, w, h))
+    draw_map_grid()
+    draw_map_tiles()
 
-def draw():
+def draw_map_grid():
+    for row_i in range(pannel_tiles['row_n']):
+        for col_i in range(pannel_tiles['col_n']):
+            x = pannel_tiles['x'] + (pannel_tiles['tile_size']*col_i) 
+            y = pannel_tiles['y'] + (pannel_tiles['tile_size']*row_i)
+            w = pannel_tiles['tile_size']
+            h = pannel_tiles['tile_size']
+            # pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
+            pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
+
+def draw_map_tiles():
+    for row_i in range(pannel_tiles['row_n']):
+        for col_i in range(pannel_tiles['col_n']):
+            index = 0
+            _id = utils.format_id(index)
+            asset_json = asset_json_by_id(_id)
+            if asset_json != {}:
+                image_filepath = asset_json['image_filepath']
+                pyimg = pyimg_by_filepath(image_filepath)
+                img = pygame.transform.scale(pyimg['image'], (pannel_tiles['tile_size'], pannel_tiles['tile_size']))
+                x = pannel_tiles['x'] + pannel_tiles['tile_size']*col_i
+                y = pannel_tiles['y'] + pannel_tiles['tile_size']*row_i
+                screen.blit(img, (x, y))
+
+def draw_manager():
     screen.fill('#101010')
     draw_frame_left()
     draw_frame_center()
@@ -160,9 +207,9 @@ def draw():
 
 running = True
 while running:
-    inputs()
-    update()
-    draw()
+    inputs_manager()
+    update_manager()
+    draw_manager()
 
 pygame.quit()
 
