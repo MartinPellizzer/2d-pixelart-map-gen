@@ -9,6 +9,8 @@ import f
 import ai
 import utils
 
+
+
 tile_size = 32
 asset_pack_cur = ''
 layer_cur = 0
@@ -19,6 +21,15 @@ asset_pack_images_folderpath = f'{asset_pack_folderpath}/images'
 asset_pack_jsons_folderpath = f'{asset_pack_folderpath}/jsons'
 asset_pack_images_filepaths = [f'{asset_pack_images_folderpath}/{filename}' for filename in os.listdir(asset_pack_images_folderpath)]
 asset_pack_jsons_filepaths = [f'{asset_pack_jsons_folderpath}/{filename}' for filename in os.listdir(asset_pack_jsons_folderpath)]
+
+mouse = {
+    'x': 0,
+    'y': 0,
+    'left_click_old': -1,
+    'left_click_cur': 0,
+    'right_click_old': -1,
+    'right_click_cur': 0,
+}
 
 pannel_assets = {
     'row_num': 15,
@@ -31,12 +42,6 @@ pannel_assets = {
 
 
 assets_packs = []
-'''
-asset_pack_1 = load_asset_pack('assets/textures')
-asset_pack_2 = load_asset_pack('assets/characters')
-assets_packs.append(asset_pack_1)
-assets_packs.append(asset_pack_2)
-'''
 
 pannel_assets_clean = {
     'row_num': 15,
@@ -212,6 +217,10 @@ pygame.init()
 screen = pygame.display.set_mode([g.WINDOW_W, g.WINDOW_H])
 font_arial_16 = pygame.font.SysFont('Arial', 16)
 
+
+#######################################################
+# draw frame left
+#######################################################
 def draw_frame_left_tabs():
     x = frame_assets_tabs['x']
     y = frame_assets_tabs['y']
@@ -228,8 +237,8 @@ def draw_frame_left_tabs():
         text_surface = font_arial_16.render(f'pack {tab_i}', False, (255, 255, 255))
         screen.blit(text_surface, (x + 10, y + 5))
 
-def draw_frame_left_icons_old():
-    # draw icons background
+def draw_frame_left_icons():
+    # draw bgs
     for row_num in range(pannel_assets['row_num']):
         for col_num in range(pannel_assets['col_num']):
             x = frame_pannel_assets['x'] + pannel_assets['icon_size']*col_num + 1
@@ -263,28 +272,6 @@ def draw_frame_left_icons_old():
     h = frame_pannel_assets['h']
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h,), 1,)
 
-def draw_frame_left_icons_background():
-    for row_num in range(pannel_assets['row_num']):
-        for col_num in range(pannel_assets['col_num']):
-            x = frame_pannel_assets['x'] + pannel_assets['icon_size']*col_num + 1
-            y = frame_pannel_assets['y'] + pannel_assets['icon_size']*row_num + 1
-            w = pannel_assets['icon_size'] - 1
-            h = pannel_assets['icon_size'] - 1
-            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
-
-def draw_frame_left_icons():
-    draw_frame_left_icons_background()
-    # draw icons images
-    for i in range(pannel_assets['row_num']):
-        for j in range(pannel_assets['col_num']):
-            img_path = pannel_assets['assets'][i][j]['image_filepath']
-            if img_path != None:
-                img = get_pyimg_by_path(img_path)
-                img = pygame.transform.scale(img, (pannel_assets['icon_size'], pannel_assets['icon_size']))
-                x = frame_pannel_assets['x'] + pannel_assets['icon_size']*j
-                y = frame_pannel_assets['y'] + pannel_assets['icon_size']*i
-                screen.blit(img, (x, y))
-
 def draw_frame_left_prompt():
     x = frame_prompt['x']
     y = frame_prompt['y']
@@ -308,6 +295,9 @@ def draw_frame_left():
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
     draw_frame_left_prompt()
 
+#######################################################
+# utils
+#######################################################
 def get_asset_by_filepath(filepath):
     asset = None
     for i in range(pannel_assets['row_num']):
@@ -340,7 +330,40 @@ def get_asset(assets_packs, image_filepath):
             if found == True: 
                 break
     return asset
-    
+
+def get_map_tile_coords():
+    row_index = -1
+    col_index = -1
+    x1 = frame_map['x']
+    y1 = frame_map['y']
+    x2 = frame_map['x'] + frame_map['w']
+    y2 = frame_map['y'] + frame_map['h']
+    if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
+        col_index = (mouse['x'] - frame_center['x']) // (tile_size*camera['zoom'])
+        row_index = (mouse['y'] - frame_center['y']) // (tile_size*camera['zoom'])
+    return row_index, col_index
+
+#######################################################
+# draw frame center
+#######################################################
+def draw_map_grid():
+    for i in range(level_map['row_num']):
+        for j in range(level_map['col_num']):
+            w = tile_size*camera['zoom']
+            h = tile_size*camera['zoom']
+            x = frame_center['x'] + w*j + camera['x']
+            y = frame_center['y'] + h*i + camera['y']
+            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
+    font = pygame.font.SysFont('Arial', 24)
+    for i in range(level_map['row_num']):
+        for j in range(level_map['col_num']):
+            w = tile_size*camera['zoom']
+            h = tile_size*camera['zoom']
+            x = frame_center['x'] + w*j + camera['x']
+            y = frame_center['y'] + h*i + camera['y']
+            text_surface = font.render(f'{i} - {j}', False, (255, 0, 255))
+            screen.blit(text_surface, (x, y))
+
 def draw_map_tiles():
     # textures
     for i in range(level_map['row_num']):
@@ -368,25 +391,15 @@ def draw_map_tiles():
                 img = pygame.transform.scale(img, (w, h))
                 screen.blit(img, (x, y))
 
-def draw_map_grid():
-    for i in range(level_map['row_num']):
-        for j in range(level_map['col_num']):
-            w = tile_size*camera['zoom']
-            h = tile_size*camera['zoom']
-            x = frame_center['x'] + w*j + camera['x']
-            y = frame_center['y'] + h*i + camera['y']
-            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
+def draw_frame_center():
+    draw_map_grid()
+    draw_map_tiles()
+    draw_tile_dragging()
+    delete_tile_dragging()
 
-    font = pygame.font.SysFont('Arial', 24)
-    for i in range(level_map['row_num']):
-        for j in range(level_map['col_num']):
-            w = tile_size*camera['zoom']
-            h = tile_size*camera['zoom']
-            x = frame_center['x'] + w*j + camera['x']
-            y = frame_center['y'] + h*i + camera['y']
-            text_surface = font.render(f'{i} - {j}', False, (255, 0, 255))
-            screen.blit(text_surface, (x, y))
-
+#######################################################
+# draw frame right
+#######################################################
 def draw_debug():
     x = f.right['x']
     y = f.right['y']
@@ -412,85 +425,39 @@ def draw_frame_right():
     w = f.right['w']
     h = f.right['h']
     pygame.draw.rect(screen, '#202020', pygame.Rect(x, y, w, h))
-    # draw_debug()
-
     i = pannel_assets['row_active']
     j = pannel_assets['col_active']
     json_asset_focus = pannel_assets['assets'][i][j]
-
     text_surface = font_arial_16.render(f'X_OFF: {json_asset_focus["x_offset"]}', False, (255, 255, 255))
     screen.blit(text_surface, (x, y))
-
     rect_w, rect_h = 32, 32
     rect_x = f.right['x'] + f.right['w'] - rect_w
     rect_y = y
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(rect_x, rect_y, rect_w, rect_h), 1)
     text_surface = font_arial_16.render(f'+', False, (255, 255, 255))
     screen.blit(text_surface, (rect_x+12, rect_y+6))
-
     rect_w, rect_h = 32, 32
     rect_x = f.right['x'] + f.right['w'] - rect_w*2
     rect_y = y
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(rect_x, rect_y, rect_w, rect_h), 1)
     text_surface = font_arial_16.render(f'-', False, (255, 255, 255))
     screen.blit(text_surface, (rect_x+12, rect_y+6))
-
     text_surface = font_arial_16.render(f'Y_OFF: {json_asset_focus["y_offset"]}', False, (255, 255, 255))
     screen.blit(text_surface, (x, y+32))
-
     rect_w, rect_h = 32, 32
     rect_x = f.right['x'] + f.right['w'] - rect_w
     rect_y = y + 32
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(rect_x, rect_y, rect_w, rect_h), 1)
     text_surface = font_arial_16.render(f'+', False, (255, 255, 255))
     screen.blit(text_surface, (rect_x+12, rect_y+6))
-
     rect_w, rect_h = 32, 32
     rect_x = f.right['x'] + f.right['w'] - rect_w*2
     rect_y = y+32
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(rect_x, rect_y, rect_w, rect_h), 1)
     text_surface = font_arial_16.render(f'-', False, (255, 255, 255))
     screen.blit(text_surface, (rect_x+12, rect_y+6))
-
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
 
-def get_map_tile_coords():
-    row_index = -1
-    col_index = -1
-    x1 = frame_map['x']
-    y1 = frame_map['y']
-    x2 = frame_map['x'] + frame_map['w']
-    y2 = frame_map['y'] + frame_map['h']
-    if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-        col_index = (mouse['x'] - frame_center['x']) // (tile_size*camera['zoom'])
-        row_index = (mouse['y'] - frame_center['y']) // (tile_size*camera['zoom'])
-    return row_index, col_index
-    
-def draw_frame_center():
-    draw_map_grid()
-    draw_map_tiles()
-    draw_tile_dragging()
-    delete_tile_dragging()
-
-def manage_draw():
-    screen.fill('#101010')
-
-    draw_frame_left()
-    draw_frame_center()
-    draw_frame_right()
-
-    pygame.display.flip()
-
-mouse = {
-    'x': 0,
-    'y': 0,
-    'left_click_old': -1,
-    'left_click_cur': 0,
-    'right_click_old': -1,
-    'right_click_cur': 0,
-}
-
-# ;jump
 def click_asset_tab():
     global layer_cur
     global assets_packs
@@ -656,7 +623,6 @@ dragging_right = False
 dragging_start_x = 0
 dragging_start_y = 0
 
-
 def gen_asset(asset_pack_name):
     image = ai.gen_image(
         pannel_assets['row_active'], pannel_assets['col_active'], 
@@ -673,8 +639,9 @@ def gen_asset(asset_pack_name):
         'y_offset': 0,
     }
     utils.json_write(f'assets/{asset_pack_cur}/jsons/{image_index}.json', data)
-    load_asset_pack(f'{asset_pack_cur}')
-        
+    assets = load_asset_pack(asset_pack_name)
+    pannel_assets['assets'] = assets
+
 def gen_asset_alpha(asset_pack_name):
     image = ai.gen_image(
         pannel_assets['row_active'], pannel_assets['col_active'], 
@@ -746,9 +713,6 @@ def load_map():
             assets = assets_packs[i]['assets']
         pannel_assets['assets'] = assets
         layer_cur = i
-    # ;jump
-    # def add_image_pygame(path):
-    print(packs_names)
 
 def save_map():
     global level_map
@@ -893,6 +857,13 @@ def input_mouse():
 def manage_inputs():
     input_keyboard()
     input_mouse()
+
+def manage_draw():
+    screen.fill('#101010')
+    draw_frame_left()
+    draw_frame_center()
+    draw_frame_right()
+    pygame.display.flip()
 
 running = True
 while running:

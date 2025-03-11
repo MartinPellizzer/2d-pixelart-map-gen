@@ -1,680 +1,168 @@
 import os
-import json
-import shutil
-import tkinter
-from tkinter import filedialog
-from tkinter.filedialog import askopenfilename
-from threading import Thread
 
 import pygame
 
-import torch
-from diffusers import StableDiffusionXLPipeline
-from diffusers import StableDiffusionPipeline
-from diffusers import DPMSolverMultistepScheduler
-
-from PIL import Image
-from torchvision import transforms
-import matplotlib.pyplot as plt
-from transformers import AutoModelForImageSegmentation
-
-
-vault = f'/home/ubuntu/vault'
-
-pipe = None
-bg_model = None
-prompt = f'''
-    a wooden chair,
-    minimalist,
-    pixel art,
-'''
-
-prompt = f''
-
-tkinter.Tk().withdraw()
-
-#############################################################################
-# ;ai
-#############################################################################
-def bg_remove():
-    global active_cell_row
-    global active_cell_col
-    index = active_cell_row*4+active_cell_col
-    if index < 10: i_str = f'000{index}'
-    elif index < 100: i_str = f'00{index}'
-    elif index < 1000: i_str = f'0{index}'
-    elif index < 10000: i_str = f'{index}'
-    global bg_model
-    if not bg_model:
-        bg_model = AutoModelForImageSegmentation.from_pretrained('briaai/RMBG-2.0', trust_remote_code=True)
-    torch.set_float32_matmul_precision(['high', 'highest'][0])
-    bg_model.to('cuda')
-    bg_model.eval()
-    # Data settings
-    image_size = (1024, 1024)
-    transform_image = transforms.Compose([
-        transforms.Resize(image_size),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
-    image = Image.open(f'assets-tmp/{i_str}.png')
-    input_images = transform_image(image).unsqueeze(0).to('cuda')
-    # Prediction
-    with torch.no_grad():
-        preds = bg_model(input_images)[-1].sigmoid().cpu()
-    pred = preds[0].squeeze()
-    pred_pil = transforms.ToPILImage()(pred)
-    mask = pred_pil.resize(image.size)
-    image.putalpha(mask)
-    asset_filepath = f'assets-tmp/{i_str}-transparent.png'
-    image.save(asset_filepath)
-
-def gen_image():
-    global active_cell_row
-    global active_cell_col
-    global prompt
-    global pipe
-    model = {
-        'checkpoint_filepath': f'{vault}/stable-diffusion/checkpoints/xl/juggernautXL_juggXIByRundiffusion.safetensors',
-        'lora_filepath': f'{vault}/stable-diffusion/loras/xl/pixel-art-xl-v1.1.safetensors',
-        'prompt': f'''
-            a wooden chair,
-            minimalist,
-            pixel art,
-        ''',
-    }
-    if not pipe:
-        pipe = StableDiffusionXLPipeline.from_single_file(
-            model['checkpoint_filepath'], 
-            torch_dtype=torch.float16, 
-            use_safetensors=True, 
-            variant="fp16"
-        ).to('cuda')
-        pipe.load_lora_weights(model['lora_filepath'])
-    image = pipe(
-        prompt=text_area['text'], 
-        cross_attention_kwargs={'scale': 1}, 
-        width=1024, 
-        height=1024, 
-        num_inference_steps=20, 
-        guidance_scale=7.0
-    ).images[0]
-    index = active_cell_row*4+active_cell_col
-    if index < 10: i_str = f'000{index}'
-    elif index < 100: i_str = f'00{index}'
-    elif index < 1000: i_str = f'0{index}'
-    elif index < 10000: i_str = f'{index}'
-    image.save(f'assets-tmp/{i_str}.png')
-    # transparent or not
-    asset_filepath = f'assets-tmp/{i_str}.png'
-    if active_cell_row != 0:
-        bg_remove()
-        asset_filepath = f'assets-tmp/{i_str}-transparent.png'
-    # reload map
-    shutil.copy2(asset_filepath, f'assets-packs/{level_map["asset_pack_name"]}/{i_str}.png')
-    asset_filepath = f'assets-packs/{level_map["asset_pack_name"]}/{i_str}.png'
-    img = pygame.image.load(asset_filepath)
-    img = pygame.transform.scale(img, (tile_size, tile_size))
-    assets_icons[index] = {
-        'asset_filepath': asset_filepath,
-        'asset_filename': asset_filepath.split('/')[-1],
-        'img': img,
-    }
-    for i in range(level_map['row_num']):
-        for j in range(level_map['col_num']):
-            tile = level_map['tiles'][i*level_map['col_num']+j]
-            if tile[0] == asset_filepath:
-                level_map['tiles'][i*level_map['col_num']+j][0] = asset_filepath
-                sprites_layer_1[i*level_map['col_num']+j] = pygame.image.load(asset_filepath)
-                sprites_layer_1[i*level_map['col_num']+j] = pygame.transform.scale(
-                    sprites_layer_1[i*level_map['col_num']+j], 
-                    (tile_size*camera_scale, tile_size*camera_scale)
-                )
-            if tile[1] == asset_filepath:
-                level_map['tiles'][i*level_map['col_num']+j][1] = asset_filepath
-                sprites_layer_2[i*level_map['col_num']+j] = pygame.image.load(asset_filepath)
-                sprites_layer_2[i*level_map['col_num']+j] = pygame.transform.scale(
-                    sprites_layer_2[i*level_map['col_num']+j], 
-                    (tile_size*camera_scale, tile_size*camera_scale)
-                )
-
-#############################################################################
-# ;pygame utils
-#############################################################################
-tile_size = 64
-
-def get_map_cell_hover_index():
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    col_index = (mouse_x - map_frame_x - camera_x) // tile_size // camera_scale
-    row_index = (mouse_y - map_frame_y - camera_y) // tile_size // camera_scale
-    return row_index, col_index
-
-def new_file():
-    file = filedialog.asksaveasfile(
-        initialdir="./maps",
-        defaultextension=".json", 
-        filetypes=[('JSON file', '.json')],
-    )
-    if file is None: return
-    filename = file.name.split('/')[-1].split('.')[0].strip()
-    level_map['id'] = filename
-    level_map['asset_pack_name'] = filename
-    text = json.dumps(level_map)
-    file.write(text)
-    file.close()
-    try: os.makedirs(f'assets-packs/{filename}')
-    except: pass
-    current_map_filepath = file.name
-
-def save_map():
-    global level_map
-    global current_map_filepath
-    if level_map == '-1': 
-        new_file()
-    else:
-        j = json.dumps(level_map, indent=4)
-        with open(current_map_filepath, 'w') as f:
-            print(j, file=f)
-            print(level_map)
-
-def load_map():
-    for i in range(level_map['row_num']):
-        for j in range(level_map['col_num']):
-            img_filepath = level_map['tiles'][i*level_map['col_num']+j][0]
-            if img_filepath != '':
-                sprites_layer_1[i*level_map['col_num']+j] = pygame.image.load(img_filepath)
-                sprites_layer_1[i*level_map['col_num']+j] = pygame.transform.scale(sprites_layer_1[i*level_map['col_num']+j], (tile_size, tile_size))
-            else:
-                sprites_layer_1[i*level_map['col_num']+j] = None
-            img_filepath = level_map['tiles'][i*level_map['col_num']+j][1]
-            if img_filepath != '':
-                sprites_layer_2[i*level_map['col_num']+j] = pygame.image.load(img_filepath)
-                sprites_layer_2[i*level_map['col_num']+j] = pygame.transform.scale(sprites_layer_2[i*level_map['col_num']+j], (tile_size, tile_size))
-            else:
-                sprites_layer_2[i*level_map['col_num']+j] = None
-
-def load_asset_pack(asset_pack_name):
-    global assets_icons
-    assets_icons = []
-    asset_pack_folderpath = f'assets-packs/{asset_pack_name}'
-    assets_filepaths = [
-        f'{asset_pack_folderpath}/{filename}' 
-        for filename in os.listdir(f'{asset_pack_folderpath}')
-    ]
-    for i in range(asset_col_num * asset_row_num):
-        if i < 10: i_str = f'000{i}'
-        elif i < 100: i_str = f'00{i}'
-        elif i < 1000: i_str = f'0{i}'
-        elif i < 10000: i_str = f'{i}'
-        found = False
-        for asset_filepath in assets_filepaths:
-            if i_str in asset_filepath.split('/')[-1]:
-                print(i_str)
-                print(asset_filepath)
-                img = pygame.image.load(asset_filepath)
-                img = pygame.transform.scale(img, (tile_size, tile_size))
-                assets_icons.append({
-                    'asset_filepath': asset_filepath,
-                    'asset_filename': asset_filepath.split('/')[-1],
-                    'img': img,
-                })
-                found = True
-                break
-        if not found:
-            assets_icons.append({
-                'asset_filepath': '',
-                'asset_filename': '',
-                'img': '',
-            })
-    for asset_icon in assets_icons:
-        print(asset_icon)
-
-def open_map():
-    global level_map
-    global sprites_layer_1
-    global sprites_layer_2
-    global sprites_layer_3
-    global current_map_filepath
-    selected_map_filepath = askopenfilename(
-        initialdir="./maps",
-    )
-    if selected_map_filepath != ():
-        current_map_filepath = selected_map_filepath
-        with open(current_map_filepath) as f:
-            level_map = json.load(f)
-        load_map()
-        load_asset_pack(level_map['asset_pack_name'])
-
-#############################################################################
-# ;new data
-#############################################################################
-
-current_map_filepath = ''
-
-# init new map system
-level_map = {
-    'id': '-1',
-    'asset_pack_name': '-1',
-    'row_num': 8,
-    'col_num': 8,
-    'tiles': [],
-}
-
-for i in range(level_map['row_num'] * level_map['col_num']):
-    level_map['tiles'].append(['', '', ''])
-
-sprites_layer_1 = []
-sprites_layer_2 = []
-sprites_layer_3 = []
-
-for i in range(level_map['row_num'] * level_map['col_num']):
-    sprites_layer_1.append(None)
-    sprites_layer_2.append(None)
-    sprites_layer_3.append(None)
-
-assets_icons = []
-asset_col_num = 4
-asset_row_num = 4
-asset_icon_size = 64
-
-for i in range(asset_col_num * asset_row_num):
-    assets_icons.append({
-        'asset_filepath': '',
-        'asset_filename': '',
-        'img': '',
-    })
-# load_asset_pack(level_map['asset_pack_name'])
-
-
-mouse_left_pressed = False
-
-#############################################################################
-# ;pygame
-#############################################################################
+import g
+import utils
 
 pygame.init()
 
+screen = pygame.display.set_mode([g.WINDOW_W, g.WINDOW_H])
+font_arial_16 = pygame.font.SysFont('Arial', 16)
 
-active_cell_row = 0
-active_cell_col = 0
-
-
-#########################################
-# frames
-#########################################
-window_w = 1920
-window_h = 1080
-
-left_frame_x = 0
-left_frame_y = 0
-left_frame_w = 320
-left_frame_h = window_h
-
-asset_tab_frame_x = left_frame_x
-asset_tab_frame_y = left_frame_y
-asset_tab_frame_w = left_frame_w
-asset_tab_frame_h = 30
-
-asset_frame_x = asset_tab_frame_x
-asset_frame_y = asset_tab_frame_h
-asset_frame_w = asset_icon_size*asset_col_num
-asset_frame_h = asset_icon_size*asset_row_num
-
-right_frame_w = 320
-right_frame_h = window_h
-right_frame_x = window_w - right_frame_w
-right_frame_y = 0
-
-tab_frame_x = left_frame_w
-tab_frame_y = 0
-tab_frame_w = window_w - left_frame_w - right_frame_w
-tab_frame_h = 30
-
-map_frame_x = left_frame_w
-map_frame_y = 0 + tab_frame_h
-map_frame_w = window_w - left_frame_w - right_frame_w
-map_frame_h = window_h
-
-screen = pygame.display.set_mode([window_w, window_h])
-
-camera_x = 0
-camera_y = 0
-mouse_x = 0
-mouse_y = 0
-
-camera_x_start = 0
-camera_y_start = 0
-mouse_x_start = 0
-mouse_y_start = 0
-is_panning_begin = False
-
-camera_scale = 1
-
-running = True
-
-
-reload_images_map = False
-
-text_area = {
-    'text': '',
+frame_left = {
     'x': 0,
-    'y': 500,
-    'w': 300,
-    'h': 300,
+    'y': 0,
+    'w': 320,
+    'h': g.WINDOW_H,
 }
 
-############################################################################
-# ;draw
-############################################################################
+pannel_assets = {
+    'x': 0,
+    'y': 0,
+    'w': 64*5,
+    'h': 64*15,
+    'col_n': 5,
+    'row_n': 15,
+    'icon_size': 64,
+    'col_cur': 0,
+    'row_cur': 0,
+}
 
-def draw_map_grid():
-    for i in range(level_map['row_num']):
-        for j in range(level_map['col_num']):
-            w = tile_size*camera_scale
-            h = tile_size*camera_scale
-            x = map_frame_x + w*j + camera_x
-            y = map_frame_y + h*i + camera_y
-            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h,), 1,)
+assets = []
+pyimgs = []
 
-def draw_map_tile(img, row_i, col_i):
-    if img != None:
-        w = tile_size*camera_scale
-        h = tile_size*camera_scale
-        x = map_frame_x + w*col_i + camera_x
-        y = map_frame_y + h*row_i + camera_y
-        screen.blit(img, (x, y))
+# asset:
+#       json
+#       png
+#       pyimg
 
-def draw_map_tiles():
-    for i in range(level_map['row_num']):
-        for j in range(level_map['col_num']):
-            img = sprites_layer_1[i*level_map['col_num']+j]
-            draw_map_tile(img, i, j)
-    for i in range(level_map['row_num']):
-        for j in range(level_map['col_num']):
-            img = sprites_layer_2[i*level_map['col_num']+j]
-            draw_map_tile(img, i, j)
+def assets_jsons_load(foldername):
+    filepaths = [f'assets/{foldername}/jsons/{filename}' for filename in os.listdir(f'assets/{foldername}/jsons')]
+    assets_jsons = []
+    for filepath in filepaths:
+        asset_json = asset_json_load(filepath)
+        assets_jsons.append(asset_json)
+    return assets_jsons
 
-def draw_left_frame():
-    # assets
-    for row_num in range(asset_row_num):
-        for col_num in range(asset_col_num):
-            # background
-            x = asset_frame_x + asset_icon_size*col_num + 1
-            y = asset_frame_y + asset_icon_size*row_num + 1
-            w = asset_icon_size - 1
-            h = asset_icon_size - 1
-            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
-            # img
-            # jump
-            asset_filepath = assets_icons[row_num*asset_col_num+col_num]['asset_filepath']
-            if asset_filepath != '':
-                asset_icon = assets_icons[row_num*asset_col_num + col_num]['img']
-                x = asset_frame_x + asset_icon_size*col_num
-                y = asset_frame_y + asset_icon_size*row_num
-                screen.blit(asset_icon, (x, y))
-            # border selected
-            if active_cell_row == row_num and active_cell_col == col_num:
-                x = asset_frame_x + asset_icon_size*col_num + 1
-                y = asset_frame_y + asset_icon_size*row_num + 1
-                w = asset_icon_size - 1
-                h = asset_icon_size - 1
-                pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1,)
+def asset_json_load(filepath):
+    asset_json = utils.json_read(filepath)
+    return asset_json
 
+def asset_json_by_id(_id):
+    asset_json_searched = {}
+    for asset_json in assets_jsons:
+        asset_json_id = asset_json['image_filepath'].split('/')[-1].split('.')[0]
+        if asset_json_id == _id:
+            asset_json_searched = asset_json
+            break
+    return asset_json_searched
 
-'''
-def draw_left_frame():
-    # assets
-    for row_num in range(asset_row_num):
-        for col_num in range(asset_col_num):
-            # background
-            x = asset_frame_x + asset_icon_size*col_num + 1
-            y = asset_frame_y + asset_icon_size*row_num + 1
-            w = asset_icon_size - 1
-            h = asset_icon_size - 1
-            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
-            # img
-            asset_filepath = assets_icons[row_num*asset_col_num+col_num]['asset_filepath']
-            if asset_filepath != '':
-                asset_icon = assets_icons[row_num*asset_col_num + col_num]['img']
-                x = asset_frame_x + asset_icon_size*col_num
-                y = asset_frame_y + asset_icon_size*row_num
-                screen.blit(asset_icon, (x, y))
-            # border selected
-            if active_cell_row == row_num and active_cell_col == col_num:
-                x = asset_frame_x + asset_icon_size*col_num + 1
-                y = asset_frame_y + asset_icon_size*row_num + 1
-                w = asset_icon_size - 1
-                h = asset_icon_size - 1
-                pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1,)
-'''
+def asset_index(row_i, col_i):
+    global pannel_assets
+    index = row_i*pannel_assets['col_n'] + col_i
+    return index
 
-def draw_left_tabs():
-    font = pygame.font.SysFont('Arial', 16)
-    x = asset_tab_frame_x
-    y = asset_tab_frame_y
-    w = asset_tab_frame_w
-    h = asset_tab_frame_h
-    pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
-    pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
-    tab_i = -1
-    tab_w = 80
-    for tab_i in range(2):
-        x = asset_tab_frame_x + tab_w*tab_i
-        y = asset_tab_frame_y
-        pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, tab_w, h), 1)
-        text_surface = font.render(f'ast {tab_i}', False, (255, 255, 255))
-        screen.blit(text_surface, (x + 10, y + 5))
+def pyimg_load(asset_json):
+    global pyimgs
+    filepath = asset_json['image_filepath']
+    found = False
+    for i, pyimg in enumerate(pyimgs):
+        if pyimg['image_filepath'] == filepath:
+            pyimgs[i] = {
+                'image_filepath': filepath, 
+                'image': pygame.image.load(filepath),
+            }
+            found = True
+            break
+    if not found:
+        pyimgs.append({
+            'image_filepath': filepath, 
+            'image': pygame.image.load(filepath),
+        })
 
-def draw_right_frame():
-    pygame.draw.rect(screen, '#303030', pygame.Rect(right_frame_x, right_frame_y, right_frame_w, right_frame_h))
+def pyimg_by_filepath(image_filepath):
+    global pyimgs
+    pyimg = {} 
+    for pyimg_cur in pyimgs:
+        if pyimg_cur['image_filepath'] == image_filepath:
+            pyimg = pyimg_cur
+            break
+    return pyimg
 
-def draw_map_tabs():
-    font = pygame.font.SysFont('Arial', 16)
-    text_surface = font.render(f'AST 0', False, (255, 255, 255))
-    pygame.draw.rect(screen, '#303030', pygame.Rect(tab_frame_x, tab_frame_y, tab_frame_w, tab_frame_h))
-    pygame.draw.rect(screen, '#ffffff', pygame.Rect(tab_frame_x, tab_frame_y, tab_frame_w, tab_frame_h), 1)
-    tab_i = -1
-    tab_w = 80
-    for tab_i in range(2):
-        x1 = tab_frame_x + tab_w*tab_i
-        y1 = tab_frame_y
-        pygame.draw.rect(screen, '#ffffff', pygame.Rect(x1, y1, tab_w, tab_frame_h), 1)
-        text_surface = font.render(f'map {tab_i}', False, (255, 255, 255))
-        screen.blit(text_surface, (x1 + 10, y1 + 5))
+assets_jsons = assets_jsons_load('textures')
+for asset_json in assets_jsons:
+    pyimg_load(asset_json)
+    print(asset_json)
+print(pyimgs)
 
-def draw_debug():
-    font = pygame.font.SysFont('Arial', 16)
-    row_index, col_index = get_map_cell_hover_index()
-    text_surface = font.render(f'x: {col_index} - y: {row_index}', False, (255, 255, 255))
-    screen.blit(text_surface, (0, 400))
+asset_json = asset_json_by_id('0005')
+print(asset_json)
 
-def draw_prompt():
-    pygame.draw.rect(screen, '#ffffff', pygame.Rect(text_area['x'], text_area['y'], text_area['w'], text_area['h']), 1)
-    font = pygame.font.SysFont('Arial', 16)
-    text_surface = font.render(text_area['text'], False, (255, 255, 255))
-    screen.blit(text_surface, (text_area['x'], text_area['y']))
-
-def draw_main():
-    pygame.font.init()
-    # window bg
-    screen.fill('#101010')
-    # map
-    draw_map_grid()
-    draw_map_tiles()
-    draw_map_tabs()
-    # left frame
-    pygame.draw.rect(screen, '#202020', pygame.Rect(0, 0, left_frame_w, left_frame_h))
-    draw_left_frame()
-    draw_left_tabs()
-    ## right frame
-    draw_right_frame()
-    ## prompt
-    draw_prompt()
-    ## debug
-    draw_debug()
-    pygame.display.flip()
-
-###################################################################################
-# ;input
-###################################################################################
-def input_mousewheel():
-    global camera_scale
-    camera_scale += event.y
-    if camera_scale < 1: camera_scale = 1
-    elif camera_scale > 8: camera_scale = 8
-    for i in range(level_map['row_num']):
-        for j in range(level_map['col_num']):
-            if sprites_layer_1[i*level_map['col_num']+j] != None:
-                sprites_layer_1[i*level_map['col_num']+j] = pygame.transform.scale(
-                    sprites_layer_1[i*level_map['col_num']+j], (tile_size*camera_scale, tile_size*camera_scale)
-                )
-            if sprites_layer_2[i*level_map['col_num']+j] != None:
-                sprites_layer_2[i*level_map['col_num']+j] = pygame.transform.scale(
-                    sprites_layer_2[i*level_map['col_num']+j], (tile_size*camera_scale, tile_size*camera_scale)
-                )
-
-def input_return():
-    thread = Thread(target = gen_image)
-    thread.start()
-    thread.join()
-
-while running:
+def inputs_keyboard():
+    global running
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEWHEEL:
-            input_mousewheel()
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LALT:
-                pass
-            else:
-                if event.key == pygame.K_BACKSPACE:
-                    text_area['text'] = text_area['text'][:-1]
-                elif event.key == pygame.K_SPACE:
-                    text_area['text'] += ' '
-                elif event.key == pygame.K_DELETE:
-                    text_area['text'] = ''
-                elif event.key == pygame.K_RETURN:
-                    input_return()
-                elif event.key == pygame.K_PLUS:
-                    pass
-                elif event.key == pygame.K_MINUS:
-                    pass
-                elif event.key == pygame.K_n and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                    new_file()
-                elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                    save_map()
-                elif event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                    pass
-                    # load_map()
-                elif event.key == pygame.K_o and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                    open_map()
-                elif pygame.key.get_mods() & pygame.KMOD_CTRL:
-                    pass
-                else:
-                    text_area['text'] += pygame.key.name(event.key)
+            if event.key == pygame.K_ESCAPE:
+                running = False
 
+def inputs():
+    inputs_keyboard()
 
-    mouse_x, mouse_y = pygame.mouse.get_pos()
-    if pygame.mouse.get_pressed()[0] == True: # left click
-        if not mouse_left_pressed:
-            mouse_left_pressed = True
-            ## asset panel
-            x1 = asset_frame_x
-            y1 = asset_frame_y
-            x2 = asset_frame_x + asset_icon_size*asset_col_num
-            y2 = asset_frame_y + asset_icon_size*asset_row_num
-            if (mouse_x >= x1 and mouse_x < x2 and mouse_y >= y1 and mouse_y < y2):
-                print(x1, y1, x2, y2)
-                active_cell_col = (mouse_x - asset_frame_x) // asset_icon_size
-                active_cell_row = (mouse_y - asset_frame_y) // asset_icon_size
-            '''
-            ## map tab panel
-            x1 = tab_frame_x
-            y1 = tab_frame_y
-            x2 = tab_frame_x + tab_frame_w
-            y2 = tab_frame_y + tab_frame_h
-            if mouse_x >= x1 and mouse_x < x2 and mouse_y >= y1 and mouse_y < y2:
-                tab_i = -1
-                tab_w = 80
-                for tab_i in range(2):
-                    x1 = tab_frame_x + tab_w*tab_i
-                    y1 = tab_frame_y
-                    x2 = tab_frame_x + tab_w*tab_i + tab_w
-                    y2 = tab_frame_y + map_frame_h
-                    if mouse_x >= x1 and mouse_x < x2 and mouse_y >= y1 and mouse_y < y2:
-                        if current_map_filename != maps_filenames[tab_i]:
-                            current_map_filename = maps_filenames[tab_i]
-                            open_map()
-            ## asset tab panel
-            x1 = asset_tab_frame_x
-            y1 = asset_tab_frame_y
-            x2 = asset_tab_frame_x + asset_tab_frame_w
-            y2 = asset_tab_frame_y + asset_tab_frame_h
-            if mouse_x >= x1 and mouse_x < x2 and mouse_y >= y1 and mouse_y < y2:
-                tab_i = -1
-                tab_w = 80
-                for tab_i in range(2):
-                    x1 = asset_tab_frame_x + tab_w*tab_i
-                    y1 = asset_tab_frame_y
-                    x2 = asset_tab_frame_x + tab_w*tab_i + tab_w
-                    y2 = asset_tab_frame_y + asset_tab_frame_h
-                    if mouse_x >= x1 and mouse_x < x2 and mouse_y >= y1 and mouse_y < y2:
-                        if current_asset_pack_filepath != assets_packs_filepaths[tab_i]:
-                            current_asset_pack_filepath = assets_packs_filepaths[tab_i]
-                            load_asset_pack()
-            '''
+def update():
+    pass
 
-        ## map frame
-        x1 = map_frame_x
-        y1 = map_frame_y
-        x2 = map_frame_x + map_frame_w
-        y2 = map_frame_y + map_frame_h
-        if mouse_x >= x1 and mouse_x < x2 and mouse_y >= y1 and mouse_y < y2:
-            row_index, col_index = get_map_cell_hover_index()
-            if row_index >= 0 and row_index < level_map['row_num'] and col_index >= 0 and col_index < level_map['col_num']:
-                asset_icon = assets_icons[active_cell_row*4+active_cell_col]
-                img_filepath = asset_icon['asset_filepath']
-                if img_filepath != '':
-                    if active_cell_row == 0:
-                        level_map['tiles'][row_index*level_map['col_num']+col_index][0] = img_filepath
-                        sprites_layer_1[row_index*level_map['col_num']+col_index] = pygame.image.load(img_filepath)
-                        sprites_layer_1[row_index*level_map['col_num']+col_index] = pygame.transform.scale(sprites_layer_1[row_index*level_map['col_num']+col_index], (tile_size*camera_scale, tile_size*camera_scale))
-                    else:
-                        level_map['tiles'][row_index*level_map['col_num']+col_index][1] = img_filepath
-                        sprites_layer_2[row_index*level_map['col_num']+col_index] = pygame.image.load(img_filepath)
-                        sprites_layer_2[row_index*level_map['col_num']+col_index] = pygame.transform.scale(sprites_layer_2[row_index*level_map['col_num']+col_index], (tile_size*camera_scale, tile_size*camera_scale))
-                else:
-                    level_map['tiles'][row_index*level_map['col_num']+col_index][0] = ''
-                    level_map['tiles'][row_index*level_map['col_num']+col_index][1] = ''
-                    sprites_layer_1[row_index*level_map['col_num']+col_index] = None
-                    sprites_layer_2[row_index*level_map['col_num']+col_index] = None
-    else:
-        mouse_left_pressed = False
-    '''
-    if pygame.mouse.get_pressed()[2] == True: # right click
-        if mouse_x > map_frame_x and mouse_y > map_frame_y and mouse_x < map_frame_w and mouse_y < map_frame_h:
-            row_index, col_index = get_map_cell_hover_index()
-            if row_index >= 0 and row_index < level_map_row_num and col_index >= 0 and col_index < level_map_col_num:
-                if level_map[row_index][col_index] != {}:
-                    level_map[row_index][col_index]['sprites']['layer_1_filepath'] = ''
-                    level_map[row_index][col_index]['sprites']['layer_2_filepath'] = ''
-                    sprites_layer_1[row_index][col_index] = None
-                    sprites_layer_2[row_index][col_index] = None
-                    sprites_layer_3[row_index][col_index] = None
-    if pygame.mouse.get_pressed()[1] == True: # middle click
-        if not is_panning_begin:
-            is_panning_begin = True
-            camera_x_start = camera_x
-            camera_y_start = camera_y
-            mouse_x_start = mouse_x
-            mouse_y_start = mouse_y
-        camera_x = camera_x_start + mouse_x - mouse_x_start
-        camera_y = camera_y_start + mouse_y - mouse_y_start
-    else:
-        is_panning_begin = False
-    '''
-    
-    draw_main()
+def draw_frame_assets_grid():
+    for row_i in range(pannel_assets['row_n']):
+        for col_i in range(pannel_assets['col_n']):
+            x = pannel_assets['x'] + (pannel_assets['icon_size']*col_i) + 1
+            y = pannel_assets['y'] + (pannel_assets['icon_size']*row_i) + 1
+            w = pannel_assets['icon_size'] - 1
+            h = pannel_assets['icon_size'] - 1
+            pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
+
+def draw_frame_assets_icons():
+    for row_i in range(pannel_assets['row_n']):
+        for col_i in range(pannel_assets['col_n']):
+            index = asset_index(row_i, col_i)
+            _id = utils.format_id(index)
+            asset_json = asset_json_by_id(_id)
+            if asset_json != {}:
+                image_filepath = asset_json['image_filepath']
+                pyimg = pyimg_by_filepath(image_filepath)
+                img = pygame.transform.scale(pyimg['image'], (pannel_assets['icon_size'], pannel_assets['icon_size']))
+                x = pannel_assets['x'] + pannel_assets['icon_size']*col_i
+                y = pannel_assets['y'] + pannel_assets['icon_size']*row_i
+                screen.blit(img, (x, y))
+
+def draw_frame_assets():
+    draw_frame_assets_grid()
+    draw_frame_assets_icons()
+
+def draw_frame_left():
+    x = frame_left['x']
+    y = frame_left['y']
+    w = frame_left['w']
+    h = frame_left['h']
+    pygame.draw.rect(screen, '#202020', (x, y, w, h))
+    draw_frame_assets()
+
+def draw_frame_center():
+    pass
+
+def draw():
+    screen.fill('#101010')
+    draw_frame_left()
+    draw_frame_center()
+    pygame.display.flip()
+
+running = True
+while running:
+    inputs()
+    update()
+    draw()
 
 pygame.quit()
+
