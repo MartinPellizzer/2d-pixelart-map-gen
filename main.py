@@ -145,9 +145,11 @@ for asset_json in assets_jsons:
 print(pyimgs)
 tiles_init()
 ## test code
+'''
 tiles_list[0][0] = f'assets/textures/images/0000.png'
 tiles_list[1][0] = f'assets/textures/images/0001.png'
 tiles_list[9][0] = f'assets/textures/images/0008.png'
+'''
 print(tiles_list)
 
 def inputs_keyboard():
@@ -166,37 +168,69 @@ mouse = {
     'left_click_old': 0,
 }
 
-def tile_by_click():
+def asset_index_by_mouse_pos():
+    global mouse
+    mouse_rel_x = mouse['x'] - pannel_assets['x']
+    mouse_rel_y = mouse['y'] - pannel_assets['y']
+    row_i = mouse_rel_y // pannel_assets['icon_size']
+    col_i = mouse_rel_x // pannel_assets['icon_size']
+    index = asset_index(row_i, col_i)
+    return index
+
+def tile_index_by_mouse_pos():
     global mouse
     mouse_rel_x = mouse['x'] - pannel_tiles['x']
     mouse_rel_y = mouse['y'] - pannel_tiles['y']
     row_i = mouse_rel_y // pannel_tiles['tile_size']
     col_i = mouse_rel_x // pannel_tiles['tile_size']
     index = tile_index(row_i, col_i)
-    tile = tiles_list[index]
-    return tile
+    return index
+
+def mouse_click_asset():
+    global pannel_assets
+    x1 = pannel_assets['x']
+    y1 = pannel_assets['y']
+    x2 = pannel_assets['x'] + pannel_assets['icon_size']*pannel_assets['col_n']
+    y2 = pannel_assets['y'] + pannel_assets['icon_size']*pannel_assets['row_n']
+    if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
+        mouse_rel_x = mouse['x'] - pannel_assets['x']
+        mouse_rel_y = mouse['y'] - pannel_assets['y']
+        row_i = mouse_rel_y // pannel_assets['icon_size']
+        col_i = mouse_rel_x // pannel_assets['icon_size']
+        pannel_assets['col_cur'] = col_i
+        pannel_assets['row_cur'] = row_i
 
 def mouse_click_tile():
+    global tiles_list
     x1 = pannel_tiles['x']
     y1 = pannel_tiles['y']
     x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
     y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-        tile = tile_by_click()
-        tile[0] = 'assets/textures/images/0000.png'
+        tile_index = tile_index_by_mouse_pos()
+        asset_index = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
+        _id = utils.format_id(asset_index)
+        tiles_list[tile_index][0] = f'assets/textures/images/{_id}.png'
 
-def inputs_mouse():
+def mouse_pos():
     global mouse
     mouse['x'], mouse['y'] = pygame.mouse.get_pos()
-    # left
+
+def mouse_left():
+    global mouse
     mouse['left_click_cur'] = pygame.mouse.get_pressed()[0]
     if mouse['left_click_cur'] == 1:
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
+            mouse_click_asset()
             mouse_click_tile()
     else:
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
+
+def inputs_mouse():
+    mouse_pos()
+    mouse_left()
 
 def inputs_manager():
     inputs_keyboard()
@@ -228,9 +262,17 @@ def draw_frame_assets_icons():
                 y = pannel_assets['y'] + pannel_assets['icon_size']*row_i
                 screen.blit(img, (x, y))
 
+def draw_frame_assets_active():
+    x = pannel_assets['x'] + (pannel_assets['icon_size']*pannel_assets['col_cur'])
+    y = pannel_assets['y'] + (pannel_assets['icon_size']*pannel_assets['row_cur'])
+    w = pannel_assets['icon_size']
+    h = pannel_assets['icon_size']
+    pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
+
 def draw_frame_assets():
     draw_frame_assets_grid()
     draw_frame_assets_icons()
+    draw_frame_assets_active()
 
 def draw_frame_left():
     x = frame_left['x']
