@@ -48,15 +48,9 @@ pannel_tiles = {
     'row_cur': 0,
 }
 
-assets = []
-pyimgs = []
-tiles = []
-
-# asset:
-#       json
-#       png
-#       pyimg
-
+#################################################################
+# ;assets
+#################################################################
 def assets_jsons_load(foldername):
     filepaths = [f'assets/{foldername}/jsons/{filename}' for filename in os.listdir(f'assets/{foldername}/jsons')]
     assets_jsons = []
@@ -83,6 +77,9 @@ def asset_index(row_i, col_i):
     index = row_i*pannel_assets['col_n'] + col_i
     return index
 
+#################################################################
+# ;pyimg
+#################################################################
 def pyimg_load(asset_json):
     global pyimgs
     filepath = asset_json['image_filepath']
@@ -110,11 +107,48 @@ def pyimg_by_filepath(image_filepath):
             break
     return pyimg
 
+#################################################################
+# ;tiles
+#################################################################
+def tiles_init_old():
+    global tiles_list
+    tiles_list = []
+    for row_i in range(pannel_tiles['row_n']):
+        row_cur = []
+        for col_i in range(pannel_tiles['col_n']):
+            row_cur.append([None, None, None, None, None])
+        tiles_list.append(row_cur)
+
+def tiles_init():
+    global tiles_list
+    tiles_list = []
+    for row_i in range(pannel_tiles['row_n']):
+        for col_i in range(pannel_tiles['col_n']):
+            tiles_list.append([None, None, None, None, None])
+
+def tile_index(row_i, col_i):
+    global pannel_tiles
+    index = row_i*pannel_tiles['col_n'] + col_i
+    return index
+
+#################################################################
+# ;init
+#################################################################
+tiles_list = []
+pyimgs = []
+assets_jsons = []
+
 assets_jsons = assets_jsons_load('textures')
 for asset_json in assets_jsons:
     pyimg_load(asset_json)
     print(asset_json)
 print(pyimgs)
+tiles_init()
+## test code
+tiles_list[0][0] = f'assets/textures/images/0000.png'
+tiles_list[1][0] = f'assets/textures/images/0001.png'
+tiles_list[9][0] = f'assets/textures/images/0008.png'
+print(tiles_list)
 
 def inputs_keyboard():
     global running
@@ -172,10 +206,10 @@ def draw_frame_center():
     w = frame_center['w']
     h = frame_center['h']
     pygame.draw.rect(screen, '#101010', (x, y, w, h))
-    draw_map_grid()
-    draw_map_tiles()
+    draw_tiles_grid()
+    draw_tiles_images()
 
-def draw_map_grid():
+def draw_tiles_grid():
     for row_i in range(pannel_tiles['row_n']):
         for col_i in range(pannel_tiles['col_n']):
             x = pannel_tiles['x'] + (pannel_tiles['tile_size']*col_i) 
@@ -185,14 +219,14 @@ def draw_map_grid():
             # pygame.draw.rect(screen, '#303030', pygame.Rect(x, y, w, h))
             pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
 
-def draw_map_tiles():
+def draw_tiles_images():
     for row_i in range(pannel_tiles['row_n']):
         for col_i in range(pannel_tiles['col_n']):
-            index = 0
-            _id = utils.format_id(index)
-            asset_json = asset_json_by_id(_id)
-            if asset_json != {}:
-                image_filepath = asset_json['image_filepath']
+            index = tile_index(row_i, col_i)
+            tile = tiles_list[index]
+            ## layer 0
+            image_filepath = tile[0]
+            if image_filepath != None:
                 pyimg = pyimg_by_filepath(image_filepath)
                 img = pygame.transform.scale(pyimg['image'], (pannel_tiles['tile_size'], pannel_tiles['tile_size']))
                 x = pannel_tiles['x'] + pannel_tiles['tile_size']*col_i
