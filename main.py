@@ -159,8 +159,48 @@ def inputs_keyboard():
             if event.key == pygame.K_ESCAPE:
                 running = False
 
+mouse = {
+    'x': 0,
+    'y': 0,
+    'left_click_cur': 0,
+    'left_click_old': 0,
+}
+
+def tile_by_click():
+    global mouse
+    mouse_rel_x = mouse['x'] - pannel_tiles['x']
+    mouse_rel_y = mouse['y'] - pannel_tiles['y']
+    row_i = mouse_rel_y // pannel_tiles['tile_size']
+    col_i = mouse_rel_x // pannel_tiles['tile_size']
+    index = tile_index(row_i, col_i)
+    tile = tiles_list[index]
+    return tile
+
+def mouse_click_tile():
+    x1 = pannel_tiles['x']
+    y1 = pannel_tiles['y']
+    x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
+    y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
+    if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
+        tile = tile_by_click()
+        tile[0] = 'assets/textures/images/0000.png'
+
+def inputs_mouse():
+    global mouse
+    mouse['x'], mouse['y'] = pygame.mouse.get_pos()
+    # left
+    mouse['left_click_cur'] = pygame.mouse.get_pressed()[0]
+    if mouse['left_click_cur'] == 1:
+        if mouse['left_click_old'] != mouse['left_click_cur']:
+            mouse['left_click_old'] = mouse['left_click_cur']
+            mouse_click_tile()
+    else:
+        if mouse['left_click_old'] != mouse['left_click_cur']:
+            mouse['left_click_old'] = mouse['left_click_cur']
+
 def inputs_manager():
     inputs_keyboard()
+    inputs_mouse()
 
 def update_manager():
     pass
