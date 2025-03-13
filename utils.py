@@ -17,4 +17,10 @@ def json_read(filepath):
     with open(filepath) as f:
         data = json.load(f)
     return data
-    
+
+##########################################################
+# ;assets
+##########################################################
+def assets_get_active_index(pannel_assets):
+    index = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
+    return index

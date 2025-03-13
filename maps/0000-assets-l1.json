@@ -1,0 +1,37 @@
+[
+    {
+        "image_filepath": "assets/characters/images/0001.png",
+        "x_offset": 0,
+        "y_offset": 16
+    },
+    {
+        "image_filepath": "assets/characters/images/0005.png",
+        "x_offset": 0,
+        "y_offset": 16
+    },
+    {
+        "image_filepath": "assets/characters/images/0000.png",
+        "x_offset": 0,
+        "y_offset": 16
+    },
+    {
+        "image_filepath": "assets/characters/images/0006.png",
+        "x_offset": 0,
+        "y_offset": 16
+    },
+    {
+        "image_filepath": "assets/characters/images/0004.png",
+        "x_offset": 0,
+        "y_offset": 16
+    },
+    {
+        "image_filepath": "assets/characters/images/0003.png",
+        "x_offset": 0,
+        "y_offset": 16
+    },
+    {
+        "image_filepath": "assets/characters/images/0002.png",
+        "x_offset": 0,
+        "y_offset": 16
+    }
+]

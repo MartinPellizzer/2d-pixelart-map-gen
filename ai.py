@@ -42,7 +42,7 @@ def bg_remove(row_active, col_active, assets_pack):
     image.putalpha(mask)
     return image
 
-def gen_image(row_active, col_active, assets_pack, prompt):
+def gen_image(prompt):
     import torch
     from diffusers import StableDiffusionXLPipeline
     from diffusers import StableDiffusionPipeline
