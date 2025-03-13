@@ -94,6 +94,15 @@ def asset_index(row_i, col_i):
     index = row_i*pannel_assets['col_n'] + col_i
     return index
 
+def asset_index_by_mouse_pos():
+    global mouse
+    mouse_rel_x = mouse['x'] - pannel_assets['x']
+    mouse_rel_y = mouse['y'] - pannel_assets['y']
+    row_i = mouse_rel_y // pannel_assets['icon_size']
+    col_i = mouse_rel_x // pannel_assets['icon_size']
+    index = asset_index(row_i, col_i)
+    return index
+
 def asset_gen(foldername):
     global assets_jsons
     prompt = {}
@@ -166,6 +175,15 @@ def tile_index(row_i, col_i):
     index = row_i*pannel_tiles['col_n'] + col_i
     return index
 
+def tile_index_by_mouse_pos():
+    global mouse
+    mouse_rel_x = mouse['x'] - pannel_tiles['x']
+    mouse_rel_y = mouse['y'] - pannel_tiles['y']
+    row_i = mouse_rel_y // pannel_tiles['tile_size']
+    col_i = mouse_rel_x // pannel_tiles['tile_size']
+    index = tile_index(row_i, col_i)
+    return index
+
 def map_save():
     global tiles_list
     global assets_l0_jsons
@@ -236,24 +254,6 @@ def inputs_keyboard():
             elif event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
                 map_load()
 
-def asset_index_by_mouse_pos():
-    global mouse
-    mouse_rel_x = mouse['x'] - pannel_assets['x']
-    mouse_rel_y = mouse['y'] - pannel_assets['y']
-    row_i = mouse_rel_y // pannel_assets['icon_size']
-    col_i = mouse_rel_x // pannel_assets['icon_size']
-    index = asset_index(row_i, col_i)
-    return index
-
-def tile_index_by_mouse_pos():
-    global mouse
-    mouse_rel_x = mouse['x'] - pannel_tiles['x']
-    mouse_rel_y = mouse['y'] - pannel_tiles['y']
-    row_i = mouse_rel_y // pannel_tiles['tile_size']
-    col_i = mouse_rel_x // pannel_tiles['tile_size']
-    index = tile_index(row_i, col_i)
-    return index
-
 def mouse_click_asset_tab():
     global layer_cur
     global assets_jsons
@@ -285,7 +285,6 @@ def mouse_click_asset():
         pannel_assets['row_cur'] = row_i
 
 def mouse_click_tile():
-    global tiles_list
     x1 = pannel_tiles['x']
     y1 = pannel_tiles['y']
     x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
@@ -293,11 +292,11 @@ def mouse_click_tile():
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
         tile_index = tile_index_by_mouse_pos()
         asset_index = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
-        _id = utils.format_id(asset_index)
+        asset_id = utils.format_id(asset_index)
         if layer_cur == 0:
-            tiles_list[tile_index][0] = f'assets/textures/images/{_id}.png'
+            tiles_list[tile_index][0] = f'assets/textures/images/{asset_id}.png'
         elif layer_cur == 1:
-            tiles_list[tile_index][1] = f'assets/characters/images/{_id}.png'
+            tiles_list[tile_index][1] = f'assets/characters/images/{asset_id}.png'
 
 def mouse_clear_tile():
     x1 = pannel_tiles['x']
@@ -345,6 +344,9 @@ def inputs_manager():
     inputs_keyboard()
     inputs_mouse()
 
+##########################################################################
+# ;update
+##########################################################################
 def update_manager():
     pass
 
