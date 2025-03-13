@@ -20,6 +20,9 @@ mouse = {
     'right_click_old': 0,
 }
 
+########################################################
+# ;widgets
+########################################################
 frame_left = {
     'x': 0,
     'y': 0,
@@ -68,54 +71,58 @@ pannel_tiles = {
 #################################################################
 # ;assets
 #################################################################
-def assets_jsons_load(foldername):
+
+# load all assets in folder -> assign to layer
+def assets_load(foldername):
     filepaths = [f'assets/{foldername}/jsons/{filename}' for filename in os.listdir(f'assets/{foldername}/jsons')]
-    assets_jsons = []
+    assets = []
     for filepath in filepaths:
-        asset_json = asset_json_load(filepath)
-        assets_jsons.append(asset_json)
-    return assets_jsons
+        asset = asset_load(filepath)
+        assets.append(asset)
+    return assets
 
-def asset_json_load(filepath):
-    asset_json = utils.json_read(filepath)
-    return asset_json
+# load asset by filename
+def asset_load(filepath):
+    asset = utils.json_read(filepath)
+    return asset
 
-def asset_json_by_id(_id):
-    asset_json_searched = {}
-    for asset_json in assets_jsons:
-        asset_json_id = asset_json['image_filepath'].split('/')[-1].split('.')[0]
-        if asset_json_id == _id:
-            asset_json_searched = asset_json
+## get loaded asset by id
+def asset_by_id(identifier):
+    asset = {}
+    for _asset in assets_jsons:
+        asset_id = _asset['image_filepath'].split('/')[-1].split('.')[0]
+        if asset_id == identifier:
+            asset = _asset
             break
-    return asset_json_searched
+    return asset
 
-def asset_index(row_i, col_i):
-    global pannel_assets
-    index = row_i*pannel_assets['col_n'] + col_i
-    return index
+## get asset index by matrix coords
+def asset_i(row_i, col_i):
+    i = row_i*pannel_assets['col_n'] + col_i
+    return i
 
-def asset_index_by_mouse_pos():
-    global mouse
+## get asset index by mouse position
+def asset_i_by_mouse_pos():
     mouse_rel_x = mouse['x'] - pannel_assets['x']
     mouse_rel_y = mouse['y'] - pannel_assets['y']
     row_i = mouse_rel_y // pannel_assets['icon_size']
     col_i = mouse_rel_x // pannel_assets['icon_size']
-    index = asset_index(row_i, col_i)
-    return index
+    i = asset_i(row_i, col_i)
+    return i
 
+## generate asset with ai
+## save png - save json - reload jsons - add/update pyimg
 def asset_gen(foldername):
     global assets_jsons
+    # demo prompt
     prompt = {}
     prompt['text'] = 'pixel art, rock texture'
-
     # gen image
     image = ai.gen_image(prompt=prompt['text'])
-
     # save image
-    asset_index = utils.assets_get_active_index(pannel_assets)
-    asset_id = utils.format_id(asset_index)
+    asset_i = utils.assets_get_active_index(pannel_assets)
+    asset_id = utils.format_id(asset_i)
     image.save(f'assets/{foldername}/images/{asset_id}.png')
-
     # save json
     asset_data = {
         'image_filepath': f'assets/{foldername}/images/{asset_id}.png',
@@ -123,10 +130,8 @@ def asset_gen(foldername):
         'y_offset': 0,
     }
     utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
-
     # load assets
-    assets_jsons = assets_jsons_load(foldername)
-
+    assets_jsons = assets_load(foldername)
     # load pyimg
     pyimg_load(asset_data)
 
@@ -214,8 +219,8 @@ assets_jsons = []
 
 assets_l0_jsons = []
 assets_l1_jsons = []
-assets_l0_jsons = assets_jsons_load('textures')
-assets_l1_jsons = assets_jsons_load('characters')
+assets_l0_jsons = assets_load('textures')
+assets_l1_jsons = assets_load('characters')
 
 for asset_json in assets_l0_jsons:
     pyimg_load(asset_json)
@@ -291,8 +296,8 @@ def mouse_click_tile():
     y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
         tile_index = tile_index_by_mouse_pos()
-        asset_index = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
-        asset_id = utils.format_id(asset_index)
+        asset_i = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
+        asset_id = utils.format_id(asset_i)
         if layer_cur == 0:
             tiles_list[tile_index][0] = f'assets/textures/images/{asset_id}.png'
         elif layer_cur == 1:
@@ -390,9 +395,9 @@ def draw_frame_assets_grid():
 def draw_frame_assets_icons():
     for row_i in range(pannel_assets['row_n']):
         for col_i in range(pannel_assets['col_n']):
-            index = asset_index(row_i, col_i)
+            index = asset_i(row_i, col_i)
             _id = utils.format_id(index)
-            asset_json = asset_json_by_id(_id)
+            asset_json = asset_by_id(_id)
             if asset_json != {}:
                 image_filepath = asset_json['image_filepath']
                 pyimg = pyimg_by_filepath(image_filepath)
