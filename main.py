@@ -21,6 +21,9 @@ mouse = {
     'right_click_old': 0,
 }
 
+prompt = {}
+prompt['text'] = 'pixel art, '
+
 ########################################################
 # ;widgets
 ########################################################
@@ -64,6 +67,13 @@ pannel_assets = {
     'row_cur': 0,
 }
 
+prompt_textarea = {
+    'x': frame_left['x'],
+    'y': pannel_assets['y'] + pannel_assets['h'],
+    'w': frame_left['w'],
+    'h': 30, 
+}
+
 pannel_tiles = {
     'x': frame_center['x'],
     'y': frame_center['y'],
@@ -84,9 +94,6 @@ pannel_tiles = {
 ## save png - save json - reload jsons - add/update pyimg
 def asset_gen(foldername):
     global assets_jsons
-    # demo prompt
-    prompt = {}
-    prompt['text'] = 'pixel art, rock texture'
     # gen image
     image = ai.gen_image(prompt=prompt['text'])
     # save image
@@ -98,6 +105,29 @@ def asset_gen(foldername):
         'image_filepath': f'assets/{foldername}/images/{asset_id}.png',
         'x_offset': 0,
         'y_offset': 0,
+        'size_mul': 1,
+    }
+    utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
+    # load assets
+    assets_jsons = lib_assets.assets_load(foldername)
+    # load pyimg
+    pyimg_load(asset_data)
+
+def asset_alpha_gen(foldername):
+    global assets_jsons
+    # gen image
+    image = ai.gen_image(prompt=prompt['text'])
+    image = ai.bg_remove_new(image)
+    # save image
+    asset_i = utils.assets_get_active_index(pannel_assets)
+    asset_id = utils.format_id(asset_i)
+    image.save(f'assets/{foldername}/images/{asset_id}.png')
+    # save json
+    asset_data = {
+        'image_filepath': f'assets/{foldername}/images/{asset_id}.png',
+        'x_offset': 0,
+        'y_offset': 0,
+        'size_mul': 1,
     }
     utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
     # load assets
@@ -133,6 +163,20 @@ def asset_offset_right():
     asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
     asset['x_offset'] += 1
     
+def asset_increase_size():
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
+    asset['size_mul'] += 0.1
+
+def asset_decrease_size():
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
+    asset['size_mul'] -= 0.1
+
 #################################################################
 # ;pyimg
 #################################################################
@@ -259,10 +303,23 @@ def inputs_keyboard():
                 asset_offset_left()
             elif event.key == pygame.K_RIGHT:
                 asset_offset_right()
+            elif event.key == pygame.K_KP_PLUS:
+                asset_increase_size()
+            elif event.key == pygame.K_KP_MINUS:
+                asset_decrease_size()
             elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
                 map_save()
             elif event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
                 map_load()
+            elif event.key == pygame.K_BACKSPACE:
+                prompt['text'] = prompt['text'][:-1]
+            elif event.key == pygame.K_SPACE:
+                prompt['text'] += ' '
+            elif event.key == pygame.K_LCTRL:
+                pass
+            else:
+                key_name = pygame.key.name(event.key)
+                prompt['text'] += key_name
 
 def mouse_click_asset_tab():
     global layer_cur
@@ -374,6 +431,7 @@ def draw_frame_left():
     pygame.draw.rect(screen, '#202020', (x, y, w, h))
     draw_frame_assets_tabs()
     draw_frame_assets()
+    draw_prompt_textarea()
 
 def draw_frame_assets_tabs():
     x = frame_assets_tabs['x']
@@ -421,6 +479,16 @@ def draw_frame_assets_active():
     h = pannel_assets['icon_size']
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
 
+def draw_prompt_textarea():
+    x = prompt_textarea['x']
+    y = prompt_textarea['y']
+    w = prompt_textarea['w']
+    h = prompt_textarea['h']
+    pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
+    text_surface = font_arial_16.render(f'{prompt["text"]}', False, (255, 255, 255))
+    screen.blit(text_surface, (x+6, y+6))
+    pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
+
 def draw_frame_center():
     x = frame_center['x']
     y = frame_center['y']
@@ -448,20 +516,15 @@ def draw_tiles_images():
             for i in range(5): # draw all layers
                 image_filepath = tile[i]
                 if image_filepath != None:
-                    pyimg = pyimg_by_filepath(image_filepath)
-                    img = pygame.transform.scale(pyimg['image'], (pannel_tiles['tile_size'], pannel_tiles['tile_size']))
                     asset = lib_assets.asset_get_by_filepath(assets_l0_jsons, assets_l1_jsons, image_filepath)
+                    pyimg = pyimg_by_filepath(image_filepath)
+                    img = pygame.transform.scale(
+                        pyimg['image'], 
+                        (pannel_tiles['tile_size']*asset['size_mul'], pannel_tiles['tile_size']*asset['size_mul'])
+                    )
                     x = pannel_tiles['x'] + pannel_tiles['tile_size']*col_i + asset['x_offset']
                     y = pannel_tiles['y'] + pannel_tiles['tile_size']*row_i + asset['y_offset']
                     screen.blit(img, (x, y))
-
-def draw_frame_right():
-    x = frame_right['x']
-    y = frame_right['y']
-    w = frame_right['w']
-    h = frame_right['h']
-    pygame.draw.rect(screen, '#202020', (x, y, w, h))
-    draw_asset_attr()
 
 # ;jump
 def draw_asset_attr():
@@ -482,11 +545,22 @@ def draw_asset_attr():
         text_surface = font_arial_16.render(f'Y OFF : {asset["y_offset"]}', False, (255, 255, 255))
         screen.blit(text_surface, (x+p, y+p))
         y += 24
+        text_surface = font_arial_16.render(f'SIZE MUL : {asset["size_mul"]}', False, (255, 255, 255))
+        screen.blit(text_surface, (x+p, y+p))
+        y += 24
+
+def draw_frame_right():
+    x = frame_right['x']
+    y = frame_right['y']
+    w = frame_right['w']
+    h = frame_right['h']
+    pygame.draw.rect(screen, '#202020', (x, y, w, h))
+    draw_asset_attr()
 
 def draw_manager():
     screen.fill('#101010')
-    draw_frame_left()
     draw_frame_center()
+    draw_frame_left()
     draw_frame_right()
     pygame.display.flip()
 

@@ -1,7 +1,56 @@
 [
     [
         "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
         null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
         null,
         null,
         null
@@ -43,84 +92,14 @@
     ],
     [
         "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0008.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0008.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0008.png",
-        null,
+        "assets/characters/images/0005.png",
         null,
         null,
         null
     ],
     [
         "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0008.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0008.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        "assets/characters/images/0001.png",
+        "assets/characters/images/0005.png",
         null,
         null,
         null
@@ -162,91 +141,14 @@
     ],
     [
         "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
+        "assets/characters/images/0005.png",
         null,
         null,
         null
     ],
     [
         "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
+        "assets/characters/images/0005.png",
         null,
         null,
         null
@@ -274,21 +176,7 @@
     ],
     [
         "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0000.png",
-        null,
-        null,
-        null,
-        null
-    ],
-    [
-        "assets/textures/images/0008.png",
-        null,
+        "assets/characters/images/0001.png",
         null,
         null,
         null
@@ -302,14 +190,14 @@
     ],
     [
         "assets/textures/images/0000.png",
-        null,
+        "assets/characters/images/0005.png",
         null,
         null,
         null
     ],
     [
         "assets/textures/images/0000.png",
-        null,
+        "assets/characters/images/0005.png",
         null,
         null,
         null
@@ -336,8 +224,120 @@
         null
     ],
     [
-        "assets/textures/images/0008.png",
+        "assets/textures/images/0000.png",
         null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        null,
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
+        null,
+        null,
+        null
+    ],
+    [
+        "assets/textures/images/0000.png",
+        "assets/characters/images/0005.png",
         null,
         null,
         null

@@ -2,36 +2,19 @@
     {
         "image_filepath": "assets/characters/images/0001.png",
         "x_offset": 0,
-        "y_offset": -16
+        "y_offset": 0,
+        "size_mul": 1
     },
     {
         "image_filepath": "assets/characters/images/0005.png",
-        "x_offset": 0,
-        "y_offset": 16
+        "x_offset": -67,
+        "y_offset": -128,
+        "size_mul": 2.000000000000001
     },
     {
         "image_filepath": "assets/characters/images/0000.png",
         "x_offset": 0,
-        "y_offset": -16
-    },
-    {
-        "image_filepath": "assets/characters/images/0006.png",
-        "x_offset": 0,
-        "y_offset": 16
-    },
-    {
-        "image_filepath": "assets/characters/images/0004.png",
-        "x_offset": 0,
-        "y_offset": 16
-    },
-    {
-        "image_filepath": "assets/characters/images/0003.png",
-        "x_offset": 0,
-        "y_offset": 16
-    },
-    {
-        "image_filepath": "assets/characters/images/0002.png",
-        "x_offset": 0,
-        "y_offset": 16
+        "y_offset": 0,
+        "size_mul": 1
     }
 ]

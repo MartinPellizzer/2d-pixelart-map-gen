@@ -42,6 +42,36 @@ def bg_remove(row_active, col_active, assets_pack):
     image.putalpha(mask)
     return image
 
+def bg_remove_new(image):
+    import torch
+    from PIL import Image
+    from torchvision import transforms
+    import matplotlib.pyplot as plt
+    from transformers import AutoModelForImageSegmentation
+
+    global bg_model
+    if not bg_model:
+        bg_model = AutoModelForImageSegmentation.from_pretrained('briaai/RMBG-2.0', trust_remote_code=True)
+    torch.set_float32_matmul_precision(['high', 'highest'][0])
+    bg_model.to('cuda')
+    bg_model.eval()
+    # Data settings
+    image_size = (1024, 1024)
+    transform_image = transforms.Compose([
+        transforms.Resize(image_size),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+    input_images = transform_image(image).unsqueeze(0).to('cuda')
+    # Prediction
+    with torch.no_grad():
+        preds = bg_model(input_images)[-1].sigmoid().cpu()
+    pred = preds[0].squeeze()
+    pred_pil = transforms.ToPILImage()(pred)
+    mask = pred_pil.resize(image.size)
+    image.putalpha(mask)
+    return image
+
 def gen_image(prompt):
     import torch
     from diffusers import StableDiffusionXLPipeline
