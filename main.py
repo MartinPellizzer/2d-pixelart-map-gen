@@ -5,6 +5,7 @@ import pygame
 import g
 import ai
 import utils
+import lib_assets
 
 pygame.init()
 
@@ -34,6 +35,13 @@ frame_center = {
     'x': 320,
     'y': 0,
     'w': g.WINDOW_W - 320,
+    'h': g.WINDOW_H,
+}
+
+frame_right = {
+    'x': g.WINDOW_W - 320,
+    'y': 0,
+    'w': 320,
     'h': g.WINDOW_H,
 }
 
@@ -72,44 +80,6 @@ pannel_tiles = {
 # ;assets
 #################################################################
 
-# load all assets in folder -> assign to layer
-def assets_load(foldername):
-    filepaths = [f'assets/{foldername}/jsons/{filename}' for filename in os.listdir(f'assets/{foldername}/jsons')]
-    assets = []
-    for filepath in filepaths:
-        asset = asset_load(filepath)
-        assets.append(asset)
-    return assets
-
-# load asset by filename
-def asset_load(filepath):
-    asset = utils.json_read(filepath)
-    return asset
-
-## get loaded asset by id
-def asset_by_id(identifier):
-    asset = {}
-    for _asset in assets_jsons:
-        asset_id = _asset['image_filepath'].split('/')[-1].split('.')[0]
-        if asset_id == identifier:
-            asset = _asset
-            break
-    return asset
-
-## get asset index by matrix coords
-def asset_i(row_i, col_i):
-    i = row_i*pannel_assets['col_n'] + col_i
-    return i
-
-## get asset index by mouse position
-def asset_i_by_mouse_pos():
-    mouse_rel_x = mouse['x'] - pannel_assets['x']
-    mouse_rel_y = mouse['y'] - pannel_assets['y']
-    row_i = mouse_rel_y // pannel_assets['icon_size']
-    col_i = mouse_rel_x // pannel_assets['icon_size']
-    i = asset_i(row_i, col_i)
-    return i
-
 ## generate asset with ai
 ## save png - save json - reload jsons - add/update pyimg
 def asset_gen(foldername):
@@ -131,10 +101,38 @@ def asset_gen(foldername):
     }
     utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
     # load assets
-    assets_jsons = assets_load(foldername)
+    assets_jsons = lib_assets.assets_load(foldername)
     # load pyimg
     pyimg_load(asset_data)
 
+def asset_offset_up():
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
+    asset['y_offset'] -= 1
+    
+def asset_offset_down():
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
+    asset['y_offset'] += 1
+    
+def asset_offset_left():
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
+    asset['x_offset'] -= 1
+    
+def asset_offset_right():
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
+    asset['x_offset'] += 1
+    
 #################################################################
 # ;pyimg
 #################################################################
@@ -204,7 +202,6 @@ def map_load():
     tiles_list = utils.json_read(f'maps/0000.json')
     assets_l0_jsons = utils.json_read(f'maps/0000-assets-l0.json')
     assets_l1_jsons = utils.json_read(f'maps/0000-assets-l1.json')
-
     for asset in assets_l0_jsons:
         pyimg_load(asset)
     for asset in assets_l1_jsons:
@@ -219,8 +216,8 @@ assets_jsons = []
 
 assets_l0_jsons = []
 assets_l1_jsons = []
-assets_l0_jsons = assets_load('textures')
-assets_l1_jsons = assets_load('characters')
+assets_l0_jsons = lib_assets.assets_load('textures')
+assets_l1_jsons = lib_assets.assets_load('characters')
 
 for asset_json in assets_l0_jsons:
     pyimg_load(asset_json)
@@ -254,6 +251,14 @@ def inputs_keyboard():
                     asset_gen('textures')
                 elif layer_cur == 1:
                     asset_alpha_gen('characters')
+            elif event.key == pygame.K_UP:
+                asset_offset_up()
+            elif event.key == pygame.K_DOWN:
+                asset_offset_down()
+            elif event.key == pygame.K_LEFT:
+                asset_offset_left()
+            elif event.key == pygame.K_RIGHT:
+                asset_offset_right()
             elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
                 map_save()
             elif event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
@@ -276,18 +281,21 @@ def mouse_click_asset_tab():
             assets_jsons = assets_l1_jsons
             layer_cur = 1
 
+def asset_set_active():
+    mouse_rel_x = mouse['x'] - pannel_assets['x']
+    mouse_rel_y = mouse['y'] - pannel_assets['y']
+    row_i = mouse_rel_y // pannel_assets['icon_size']
+    col_i = mouse_rel_x // pannel_assets['icon_size']
+    pannel_assets['col_cur'] = col_i
+    pannel_assets['row_cur'] = row_i
+
 def mouse_click_asset():
     x1 = pannel_assets['x']
     y1 = pannel_assets['y']
     x2 = pannel_assets['x'] + pannel_assets['icon_size']*pannel_assets['col_n']
     y2 = pannel_assets['y'] + pannel_assets['icon_size']*pannel_assets['row_n']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-        mouse_rel_x = mouse['x'] - pannel_assets['x']
-        mouse_rel_y = mouse['y'] - pannel_assets['y']
-        row_i = mouse_rel_y // pannel_assets['icon_size']
-        col_i = mouse_rel_x // pannel_assets['icon_size']
-        pannel_assets['col_cur'] = col_i
-        pannel_assets['row_cur'] = row_i
+        asset_set_active()
 
 def mouse_click_tile():
     x1 = pannel_tiles['x']
@@ -395,9 +403,9 @@ def draw_frame_assets_grid():
 def draw_frame_assets_icons():
     for row_i in range(pannel_assets['row_n']):
         for col_i in range(pannel_assets['col_n']):
-            index = asset_i(row_i, col_i)
+            index = lib_assets.asset_get_index(row_i, col_i, pannel_assets['col_n'])
             _id = utils.format_id(index)
-            asset_json = asset_by_id(_id)
+            asset_json = lib_assets.asset_get_by_id(assets_jsons, _id)
             if asset_json != {}:
                 image_filepath = asset_json['image_filepath']
                 pyimg = pyimg_by_filepath(image_filepath)
@@ -431,6 +439,7 @@ def draw_tiles_grid():
             h = pannel_tiles['tile_size']
             pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
 
+# ;jump
 def draw_tiles_images():
     for row_i in range(pannel_tiles['row_n']):
         for col_i in range(pannel_tiles['col_n']):
@@ -441,14 +450,44 @@ def draw_tiles_images():
                 if image_filepath != None:
                     pyimg = pyimg_by_filepath(image_filepath)
                     img = pygame.transform.scale(pyimg['image'], (pannel_tiles['tile_size'], pannel_tiles['tile_size']))
-                    x = pannel_tiles['x'] + pannel_tiles['tile_size']*col_i
-                    y = pannel_tiles['y'] + pannel_tiles['tile_size']*row_i
+                    asset = lib_assets.asset_get_by_filepath(assets_l0_jsons, assets_l1_jsons, image_filepath)
+                    x = pannel_tiles['x'] + pannel_tiles['tile_size']*col_i + asset['x_offset']
+                    y = pannel_tiles['y'] + pannel_tiles['tile_size']*row_i + asset['y_offset']
                     screen.blit(img, (x, y))
+
+def draw_frame_right():
+    x = frame_right['x']
+    y = frame_right['y']
+    w = frame_right['w']
+    h = frame_right['h']
+    pygame.draw.rect(screen, '#202020', (x, y, w, h))
+    draw_asset_attr()
+
+# ;jump
+def draw_asset_attr():
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
+    if asset != {}:
+        x = frame_right['x']
+        y = frame_right['y']
+        p = 16
+        text_surface = font_arial_16.render(f'IMG_PATH: {asset["image_filepath"]}', False, (255, 255, 255))
+        screen.blit(text_surface, (x+p, y+p))
+        y += 24
+        text_surface = font_arial_16.render(f'X OFF : {asset["x_offset"]}', False, (255, 255, 255))
+        screen.blit(text_surface, (x+p, y+p))
+        y += 24
+        text_surface = font_arial_16.render(f'Y OFF : {asset["y_offset"]}', False, (255, 255, 255))
+        screen.blit(text_surface, (x+p, y+p))
+        y += 24
 
 def draw_manager():
     screen.fill('#101010')
     draw_frame_left()
     draw_frame_center()
+    draw_frame_right()
     pygame.display.flip()
 
 running = True

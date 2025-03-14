@@ -2,7 +2,7 @@
     {
         "image_filepath": "assets/characters/images/0001.png",
         "x_offset": 0,
-        "y_offset": 16
+        "y_offset": -16
     },
     {
         "image_filepath": "assets/characters/images/0005.png",
@@ -12,7 +12,7 @@
     {
         "image_filepath": "assets/characters/images/0000.png",
         "x_offset": 0,
-        "y_offset": 16
+        "y_offset": -16
     },
     {
         "image_filepath": "assets/characters/images/0006.png",
