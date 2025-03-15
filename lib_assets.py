@@ -22,13 +22,17 @@ def asset_get_by_id(assets, asset_id):
             break
     return asset
 
-def asset_get_by_filepath(assets_l0_jsons, assets_l1_jsons, filepath):
+def asset_get_by_filepath(assets_layers, filepath):
     asset = {}
-    assets = [_asset for _asset in assets_l0_jsons if _asset['image_filepath'] == filepath]
-    if assets == []:
-        assets = [_asset for _asset in assets_l1_jsons if _asset['image_filepath'] == filepath]
-    if assets != []:
-        asset = assets[0]
+    for asset_layer in assets_layers:
+        found = False
+        for _asset in asset_layer:
+            if filepath == _asset['image_filepath']:
+                asset = _asset
+                found = True
+                break
+        if found:
+            break
     return asset
 
 def asset_get_index(row_i, col_i, col_n):
@@ -40,4 +44,46 @@ def asset_get_active(assets, row_i, col_i, col_n):
     asset_id = utils.format_id(asset_index)
     asset = asset_get_by_id(assets, asset_id)
     return asset
+
+def asset_offset_up(pannel_assets, assets_layer_cur):
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = asset_get_active(assets_layer_cur, row_i, col_i, col_n)
+    asset['y_offset'] -= 1
+
+def asset_offset_down(pannel_assets, assets_layer_cur):
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = asset_get_active(assets_layer_cur, row_i, col_i, col_n)
+    asset['y_offset'] += 1
+
+def asset_offset_left(pannel_assets, assets_layer_cur):
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = asset_get_active(assets_layer_cur, row_i, col_i, col_n)
+    asset['x_offset'] -= 1
+
+def asset_offset_right(pannel_assets, assets_layer_cur):
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = asset_get_active(assets_layer_cur, row_i, col_i, col_n)
+    asset['x_offset'] += 1
+
+def asset_increase_size(pannel_assets, assets_layer_cur):
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = asset_get_active(assets_layer_cur, row_i, col_i, col_n)
+    asset['size_mul'] += 0.1
+
+def asset_decrease_size(pannel_assets, assets_layer_cur):
+    row_i = pannel_assets['row_cur']
+    col_i = pannel_assets['col_cur']
+    col_n = pannel_assets['col_n']
+    asset = asset_get_active(assets_layer_cur, row_i, col_i, col_n)
+    asset['size_mul'] -= 0.1
 

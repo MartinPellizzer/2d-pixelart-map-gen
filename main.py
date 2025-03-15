@@ -1,6 +1,7 @@
 import os
 
 import pygame
+import easygui
 
 import g
 import ai
@@ -93,7 +94,8 @@ pannel_tiles = {
 ## generate asset with ai
 ## save png - save json - reload jsons - add/update pyimg
 def asset_gen(foldername):
-    global assets_jsons
+    global assets_layers
+    global asset_layer_cur
     # gen image
     image = ai.gen_image(prompt=prompt['text'])
     # save image
@@ -109,12 +111,13 @@ def asset_gen(foldername):
     }
     utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
     # load assets
-    assets_jsons = lib_assets.assets_load(foldername)
+    assets_layers[layer_cur] = lib_assets.assets_load(foldername)
+    asset_layer_cur = assets_layers[layer_cur]
     # load pyimg
     pyimg_load(asset_data)
 
 def asset_alpha_gen(foldername):
-    global assets_jsons
+    global assets_layers
     # gen image
     image = ai.gen_image(prompt=prompt['text'])
     image = ai.bg_remove_new(image)
@@ -131,51 +134,10 @@ def asset_alpha_gen(foldername):
     }
     utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
     # load assets
-    assets_jsons = lib_assets.assets_load(foldername)
+    assets_layers[layer_cur] = lib_assets.assets_load(foldername)
+    asset_layer_cur = assets_layers[layer_cur]
     # load pyimg
     pyimg_load(asset_data)
-
-def asset_offset_up():
-    row_i = pannel_assets['row_cur']
-    col_i = pannel_assets['col_cur']
-    col_n = pannel_assets['col_n']
-    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
-    asset['y_offset'] -= 1
-    
-def asset_offset_down():
-    row_i = pannel_assets['row_cur']
-    col_i = pannel_assets['col_cur']
-    col_n = pannel_assets['col_n']
-    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
-    asset['y_offset'] += 1
-    
-def asset_offset_left():
-    row_i = pannel_assets['row_cur']
-    col_i = pannel_assets['col_cur']
-    col_n = pannel_assets['col_n']
-    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
-    asset['x_offset'] -= 1
-    
-def asset_offset_right():
-    row_i = pannel_assets['row_cur']
-    col_i = pannel_assets['col_cur']
-    col_n = pannel_assets['col_n']
-    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
-    asset['x_offset'] += 1
-    
-def asset_increase_size():
-    row_i = pannel_assets['row_cur']
-    col_i = pannel_assets['col_cur']
-    col_n = pannel_assets['col_n']
-    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
-    asset['size_mul'] += 0.1
-
-def asset_decrease_size():
-    row_i = pannel_assets['row_cur']
-    col_i = pannel_assets['col_cur']
-    col_n = pannel_assets['col_n']
-    asset = lib_assets.asset_get_active(assets_jsons, row_i, col_i, col_n)
-    asset['size_mul'] -= 0.1
 
 #################################################################
 # ;pyimg
@@ -233,23 +195,42 @@ def tile_index_by_mouse_pos():
 
 def map_save():
     global tiles_list
-    global assets_l0_jsons
-    global assets_l1_jsons
+    global assets_layers
     utils.json_write(f'maps/0000.json', tiles_list)
-    utils.json_write(f'maps/0000-assets-l0.json', assets_l0_jsons)
-    utils.json_write(f'maps/0000-assets-l1.json', assets_l1_jsons)
+    utils.json_write(f'maps/0000-assets-layers.json', assets_layers)
 
 def map_load():
     global tiles_list
-    global assets_l0_jsons
-    global assets_l1_jsons
+    global assets_layers
     tiles_list = utils.json_read(f'maps/0000.json')
-    assets_l0_jsons = utils.json_read(f'maps/0000-assets-l0.json')
-    assets_l1_jsons = utils.json_read(f'maps/0000-assets-l1.json')
-    for asset in assets_l0_jsons:
-        pyimg_load(asset)
-    for asset in assets_l1_jsons:
-        pyimg_load(asset)
+    assets_layers = utils.json_read(f'maps/0000-assets-layers.json')
+    for asset_layer in assets_layers:
+        for asset in asset_layer:
+            pyimg_load(asset)
+
+def map_new():
+    pass
+    '''
+    filepath = easygui.fileopenbox()
+    if not filepath: return
+    filename = filepath.split('/')[-1].split('.')[0]
+    global tiles_list
+    global assets_layers
+    utils.json_write(f'maps/{filename}.json', tiles_list)
+    utils.json_write(f'maps/0000-assets-layers.json', assets_layers)
+    '''
+
+def map_open():
+    filepath = easygui.fileopenbox()
+    if not filepath: return
+    filename = filepath.split('/')[-1].split('.')[0]
+    global tiles_list
+    global assets_layers
+    tiles_list = utils.json_read(f'maps/{filename}.json')
+    assets_layers = utils.json_read(f'maps/{filename}-assets-layers.json')
+    for asset_layer in assets_layers:
+        for asset in asset_layer:
+            pyimg_load(asset)
 
 #################################################################
 # ;init
@@ -258,18 +239,33 @@ tiles_list = []
 pyimgs = []
 assets_jsons = []
 
-assets_l0_jsons = []
-assets_l1_jsons = []
-assets_l0_jsons = lib_assets.assets_load('textures')
-assets_l1_jsons = lib_assets.assets_load('characters')
+assets_layers = [
+    [],
+    [],
+    [],
+    [],
+    [],
+]
+assets_layers[0] = lib_assets.assets_load('textures')
+assets_layers[1] = lib_assets.assets_load('characters')
+'''
+for layer in assets_layers:
+    for item in layer:
+        print(item)
+quit()
+'''
 
-for asset_json in assets_l0_jsons:
-    pyimg_load(asset_json)
-for asset_json in assets_l1_jsons:
-    pyimg_load(asset_json)
+for asset_layer in assets_layers:
+    for asset in asset_layer:
+        pyimg_load(asset)
 
-assets_jsons = assets_l0_jsons
+for pyimg in pyimgs:
+    print(pyimg)
+# quit()
+
 layer_cur = 0
+assets_layer_cur = assets_layers[layer_cur]
+
 
 tiles_init()
 ## test code
@@ -296,21 +292,25 @@ def inputs_keyboard():
                 elif layer_cur == 1:
                     asset_alpha_gen('characters')
             elif event.key == pygame.K_UP:
-                asset_offset_up()
+                lib_assets.asset_offset_up(pannel_assets, assets_layer_cur)
             elif event.key == pygame.K_DOWN:
-                asset_offset_down()
+                lib_assets.asset_offset_down(pannel_assets, assets_layer_cur)
             elif event.key == pygame.K_LEFT:
-                asset_offset_left()
+                lib_assets.asset_offset_left(pannel_assets, assets_layer_cur)
             elif event.key == pygame.K_RIGHT:
-                asset_offset_right()
+                lib_assets.asset_offset_right(pannel_assets, assets_layer_cur)
             elif event.key == pygame.K_KP_PLUS:
-                asset_increase_size()
+                lib_assets.asset_increase_size(pannel_assets, assets_layer_cur)
             elif event.key == pygame.K_KP_MINUS:
-                asset_decrease_size()
+                lib_assets.asset_decrease_size(pannel_assets, assets_layer_cur)
             elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
                 map_save()
             elif event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
                 map_load()
+            elif event.key == pygame.K_n and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                map_new()
+            elif event.key == pygame.K_o and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                map_open()
             elif event.key == pygame.K_BACKSPACE:
                 prompt['text'] = prompt['text'][:-1]
             elif event.key == pygame.K_SPACE:
@@ -325,18 +325,15 @@ def mouse_click_asset_tab():
     global layer_cur
     global assets_jsons
     global pannel_assets
+    global assets_layer_cur
     x1 = frame_assets_tabs['x']
     y1 = frame_assets_tabs['y']
     x2 = frame_assets_tabs['x'] + frame_assets_tabs['w']
     y2 = frame_assets_tabs['y'] + frame_assets_tabs['h']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
         tab_index = (mouse['x'] - x1) // 64
-        if tab_index == 0:
-            assets_jsons = assets_l0_jsons
-            layer_cur = 0
-        elif tab_index == 1:
-            assets_jsons = assets_l1_jsons
-            layer_cur = 1
+        assets_layer_cur = assets_layers[tab_index]
+        layer_cur = tab_index
 
 def asset_set_active():
     mouse_rel_x = mouse['x'] - pannel_assets['x']
@@ -463,9 +460,9 @@ def draw_frame_assets_icons():
         for col_i in range(pannel_assets['col_n']):
             index = lib_assets.asset_get_index(row_i, col_i, pannel_assets['col_n'])
             _id = utils.format_id(index)
-            asset_json = lib_assets.asset_get_by_id(assets_jsons, _id)
-            if asset_json != {}:
-                image_filepath = asset_json['image_filepath']
+            asset = lib_assets.asset_get_by_id(assets_layer_cur, _id)
+            if asset != {}:
+                image_filepath = asset['image_filepath']
                 pyimg = pyimg_by_filepath(image_filepath)
                 img = pygame.transform.scale(pyimg['image'], (pannel_assets['icon_size'], pannel_assets['icon_size']))
                 x = pannel_assets['x'] + pannel_assets['icon_size']*col_i
@@ -513,10 +510,10 @@ def draw_tiles_images():
         for col_i in range(pannel_tiles['col_n']):
             index = tile_index(row_i, col_i)
             tile = tiles_list[index]
-            for i in range(5): # draw all layers
+            for i in range(len(assets_layers)): # draw all layers
                 image_filepath = tile[i]
                 if image_filepath != None:
-                    asset = lib_assets.asset_get_by_filepath(assets_l0_jsons, assets_l1_jsons, image_filepath)
+                    asset = lib_assets.asset_get_by_filepath(assets_layers, image_filepath)
                     pyimg = pyimg_by_filepath(image_filepath)
                     img = pygame.transform.scale(
                         pyimg['image'], 
