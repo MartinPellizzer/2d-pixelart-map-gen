@@ -1,5 +1,9 @@
 import os
+
+import ai
 import utils
+import lib_pyimgs
+
 
 def asset_load(filepath):
     asset = utils.json_read(filepath)
@@ -87,3 +91,48 @@ def asset_decrease_size(pannel_assets, assets_layer_cur):
     asset = asset_get_active(assets_layer_cur, row_i, col_i, col_n)
     asset['size_mul'] -= 0.1
 
+def asset_gen(foldername, prompt, pannel_assets, pygame, assets_layers, layer_cur, pyimgs):
+    image = ai.gen_image(prompt=prompt['text'])
+    # save image
+    asset_i = utils.assets_get_active_index(pannel_assets)
+    asset_id = utils.format_id(asset_i)
+    image.save(f'assets/{foldername}/images/{asset_id}.png')
+    # save json
+    asset_data = {
+        'image_filepath': f'assets/{foldername}/images/{asset_id}.png',
+        'x_offset': 0,
+        'y_offset': 0,
+        'size_mul': 1,
+    }
+    utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
+    # load assets
+    assets_layers[layer_cur] = assets_load(foldername)
+    asset_layer_cur = assets_layers[layer_cur]
+    # load pyimg
+    lib_pyimgs.pyimg_load(pygame, pyimgs, asset_data)
+
+    return assets_layers, asset_layer_cur, pyimgs
+
+def asset_gen_alpha(foldername, prompt, pannel_assets, pygame, assets_layers, layer_cur, pyimgs):
+    # gen image
+    image = ai.gen_image(prompt=prompt['text'])
+    image = ai.bg_remove_new(image)
+    # save image
+    asset_i = utils.assets_get_active_index(pannel_assets)
+    asset_id = utils.format_id(asset_i)
+    image.save(f'assets/{foldername}/images/{asset_id}.png')
+    # save json
+    asset_data = {
+        'image_filepath': f'assets/{foldername}/images/{asset_id}.png',
+        'x_offset': 0,
+        'y_offset': 0,
+        'size_mul': 1,
+    }
+    utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
+    # load assets
+    assets_layers[layer_cur] = assets_load(foldername)
+    asset_layer_cur = assets_layers[layer_cur]
+    # load pyimg
+    lib_pyimgs.pyimg_load(pygame, pyimgs, asset_data)
+
+    return assets_layers, asset_layer_cur, pyimgs

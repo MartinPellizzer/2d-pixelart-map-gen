@@ -7,6 +7,8 @@ import g
 import ai
 import utils
 import lib_assets
+import lib_pyimgs
+import lib_tiles
 
 pygame.init()
 
@@ -87,155 +89,23 @@ pannel_tiles = {
     'row_cur': 0,
 }
 
-#################################################################
-# ;assets
-#################################################################
-
-## generate asset with ai
-## save png - save json - reload jsons - add/update pyimg
-def asset_gen(foldername):
-    global assets_layers
-    global asset_layer_cur
-    # gen image
-    image = ai.gen_image(prompt=prompt['text'])
-    # save image
-    asset_i = utils.assets_get_active_index(pannel_assets)
-    asset_id = utils.format_id(asset_i)
-    image.save(f'assets/{foldername}/images/{asset_id}.png')
-    # save json
-    asset_data = {
-        'image_filepath': f'assets/{foldername}/images/{asset_id}.png',
-        'x_offset': 0,
-        'y_offset': 0,
-        'size_mul': 1,
-    }
-    utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
-    # load assets
-    assets_layers[layer_cur] = lib_assets.assets_load(foldername)
-    asset_layer_cur = assets_layers[layer_cur]
-    # load pyimg
-    pyimg_load(asset_data)
-
-def asset_alpha_gen(foldername):
-    global assets_layers
-    # gen image
-    image = ai.gen_image(prompt=prompt['text'])
-    image = ai.bg_remove_new(image)
-    # save image
-    asset_i = utils.assets_get_active_index(pannel_assets)
-    asset_id = utils.format_id(asset_i)
-    image.save(f'assets/{foldername}/images/{asset_id}.png')
-    # save json
-    asset_data = {
-        'image_filepath': f'assets/{foldername}/images/{asset_id}.png',
-        'x_offset': 0,
-        'y_offset': 0,
-        'size_mul': 1,
-    }
-    utils.json_write(f'assets/{foldername}/jsons/{asset_id}.json', asset_data)
-    # load assets
-    assets_layers[layer_cur] = lib_assets.assets_load(foldername)
-    asset_layer_cur = assets_layers[layer_cur]
-    # load pyimg
-    pyimg_load(asset_data)
-
-#################################################################
-# ;pyimg
-#################################################################
-def pyimg_load(asset_json):
-    global pyimgs
-    filepath = asset_json['image_filepath']
-    found = False
-    for i, pyimg in enumerate(pyimgs):
-        if pyimg['image_filepath'] == filepath:
-            pyimgs[i] = {
-                'image_filepath': filepath, 
-                'image': pygame.image.load(filepath),
-            }
-            found = True
-            break
-    if not found:
-        pyimgs.append({
-            'image_filepath': filepath, 
-            'image': pygame.image.load(filepath),
-        })
-
-def pyimg_by_filepath(image_filepath):
-    global pyimgs
-    pyimg = {} 
-    for pyimg_cur in pyimgs:
-        if pyimg_cur['image_filepath'] == image_filepath:
-            pyimg = pyimg_cur
-            break
-    return pyimg
-
-#################################################################
-# ;tiles
-#################################################################
-def tiles_init():
-    global tiles_list
-    tiles_list = []
-    for row_i in range(pannel_tiles['row_n']):
-        for col_i in range(pannel_tiles['col_n']):
-            tiles_list.append([None, None, None, None, None])
-
-def tile_index(row_i, col_i):
-    global pannel_tiles
-    index = row_i*pannel_tiles['col_n'] + col_i
-    return index
-
-def tile_index_by_mouse_pos():
-    global mouse
-    mouse_rel_x = mouse['x'] - pannel_tiles['x']
-    mouse_rel_y = mouse['y'] - pannel_tiles['y']
-    row_i = mouse_rel_y // pannel_tiles['tile_size']
-    col_i = mouse_rel_x // pannel_tiles['tile_size']
-    index = tile_index(row_i, col_i)
-    return index
-
-def map_save():
-    global tiles_list
-    global assets_layers
-    utils.json_write(f'maps/0000.json', tiles_list)
-    utils.json_write(f'maps/0000-assets-layers.json', assets_layers)
-
-def map_load():
-    global tiles_list
-    global assets_layers
-    tiles_list = utils.json_read(f'maps/0000.json')
-    assets_layers = utils.json_read(f'maps/0000-assets-layers.json')
-    for asset_layer in assets_layers:
-        for asset in asset_layer:
-            pyimg_load(asset)
-
-def map_new():
-    pass
-    '''
-    filepath = easygui.fileopenbox()
-    if not filepath: return
-    filename = filepath.split('/')[-1].split('.')[0]
-    global tiles_list
-    global assets_layers
-    utils.json_write(f'maps/{filename}.json', tiles_list)
-    utils.json_write(f'maps/0000-assets-layers.json', assets_layers)
-    '''
-
-def map_open():
-    filepath = easygui.fileopenbox()
-    if not filepath: return
-    filename = filepath.split('/')[-1].split('.')[0]
-    global tiles_list
-    global assets_layers
-    tiles_list = utils.json_read(f'maps/{filename}.json')
-    assets_layers = utils.json_read(f'maps/{filename}-assets-layers.json')
-    for asset_layer in assets_layers:
-        for asset in asset_layer:
-            pyimg_load(asset)
+pannel_tiles_dragging = {
+    'x': frame_center['x'],
+    'y': frame_center['y'],
+    'w': frame_center['w'],
+    'h': frame_center['h'],
+    'col_n': 7,
+    'row_n': 7,
+    'tile_size': 128,
+    'col_cur': 0,
+    'row_cur': 0,
+}
 
 #################################################################
 # ;init
 #################################################################
 tiles_list = []
+tiles_dragging_list = []
 pyimgs = []
 assets_jsons = []
 
@@ -246,39 +116,38 @@ assets_layers = [
     [],
     [],
 ]
-assets_layers[0] = lib_assets.assets_load('textures')
-assets_layers[1] = lib_assets.assets_load('characters')
-'''
-for layer in assets_layers:
-    for item in layer:
-        print(item)
-quit()
-'''
+
+assets_packs_foldernames = [
+    'forest-grounds',
+    'forest-objects',
+    'forest-objects',
+    'forest-objects',
+    'characters',
+]
+
+assets_layers[0] = lib_assets.assets_load(assets_packs_foldernames[0])
+assets_layers[1] = lib_assets.assets_load(assets_packs_foldernames[1])
+assets_layers[2] = lib_assets.assets_load(assets_packs_foldernames[2])
+assets_layers[3] = lib_assets.assets_load(assets_packs_foldernames[3])
+assets_layers[4] = lib_assets.assets_load(assets_packs_foldernames[4])
 
 for asset_layer in assets_layers:
     for asset in asset_layer:
-        pyimg_load(asset)
-
-for pyimg in pyimgs:
-    print(pyimg)
-# quit()
+        lib_pyimgs.pyimg_load(pygame, pyimgs, asset)
 
 layer_cur = 0
 assets_layer_cur = assets_layers[layer_cur]
-
-
-tiles_init()
-## test code
-'''
-tiles_list[0][0] = f'assets/textures/images/0000.png'
-tiles_list[1][0] = f'assets/textures/images/0001.png'
-tiles_list[9][0] = f'assets/textures/images/0008.png'
-'''
+tiles_list = lib_tiles.tiles_init(pannel_tiles)
+tiles_dragging_list = lib_tiles.tiles_init(pannel_tiles_dragging)
 
 ###############################################################
 # ;inputs
 ###############################################################
 def inputs_keyboard():
+    global tiles_list
+    global assets_layers
+    global asset_layer_cur
+    global pyimgs
     global running
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -288,9 +157,9 @@ def inputs_keyboard():
                 running = False
             elif event.key == pygame.K_RETURN:
                 if layer_cur == 0:
-                    asset_gen('textures')
-                elif layer_cur == 1:
-                    asset_alpha_gen('characters')
+                    assets_layers, asset_layer_cur, pyimgs = lib_assets.asset_gen(assets_packs_foldernames[0], prompt, pannel_assets, pygame, assets_layers, layer_cur, pyimgs)
+                else: 
+                    assets_layers, asset_layer_cur, pyimgs = lib_assets.asset_gen_alpha(assets_packs_foldernames[layer_cur], prompt, pannel_assets, pygame, assets_layers, layer_cur, pyimgs)
             elif event.key == pygame.K_UP:
                 lib_assets.asset_offset_up(pannel_assets, assets_layer_cur)
             elif event.key == pygame.K_DOWN:
@@ -304,9 +173,9 @@ def inputs_keyboard():
             elif event.key == pygame.K_KP_MINUS:
                 lib_assets.asset_decrease_size(pannel_assets, assets_layer_cur)
             elif event.key == pygame.K_s and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                map_save()
+                lib_tiles.map_save(tiles_list, assets_layers)
             elif event.key == pygame.K_l and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                map_load()
+                tiles_list, assets_layers, pyimgs = lib_tiles.map_load(pygame)
             elif event.key == pygame.K_n and pygame.key.get_mods() & pygame.KMOD_CTRL:
                 map_new()
             elif event.key == pygame.K_o and pygame.key.get_mods() & pygame.KMOD_CTRL:
@@ -351,19 +220,36 @@ def mouse_click_asset():
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
         asset_set_active()
 
+# ;jump
 def mouse_click_tile():
     x1 = pannel_tiles['x']
     y1 = pannel_tiles['y']
     x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
     y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-        tile_index = tile_index_by_mouse_pos()
+        tile_index = lib_tiles.tile_get_index_by_mouse_pos(pannel_tiles, mouse)
         asset_i = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
         asset_id = utils.format_id(asset_i)
-        if layer_cur == 0:
-            tiles_list[tile_index][0] = f'assets/textures/images/{asset_id}.png'
-        elif layer_cur == 1:
-            tiles_list[tile_index][1] = f'assets/characters/images/{asset_id}.png'
+        tiles_list[tile_index][layer_cur] = f'assets/{assets_packs_foldernames[layer_cur]}/images/{asset_id}.png'
+
+drag = {
+    'dragging': False,
+    'dragging_start_x': 0,
+    'dragging_start_y': 0,
+}
+
+def mouse_click_tile_drag():
+    x1 = pannel_tiles['x']
+    y1 = pannel_tiles['y']
+    x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
+    y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
+    if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
+        drag['dragging'] = True
+        drag['dragging_start_x'] = mouse['x']
+        drag['dragging_start_y'] = mouse['y']
+
+def mouse_click_tile_drag_release():
+    drag['dragging'] = False
 
 def mouse_clear_tile():
     x1 = pannel_tiles['x']
@@ -371,11 +257,8 @@ def mouse_clear_tile():
     x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
     y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
     if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-        tile_index = tile_index_by_mouse_pos()
-        if layer_cur == 0:
-            tiles_list[tile_index][0] = None
-        elif layer_cur == 1:
-            tiles_list[tile_index][1] = None
+        tile_index = lib_tiles.tile_get_index_by_mouse_pos(pannel_tiles, mouse)
+        tiles_list[tile_index][layer_cur] = None
 
 def mouse_pos():
     mouse['x'], mouse['y'] = pygame.mouse.get_pos()
@@ -387,10 +270,12 @@ def mouse_left():
             mouse['left_click_old'] = mouse['left_click_cur']
             mouse_click_asset_tab()
             mouse_click_asset()
-            mouse_click_tile()
+            # mouse_click_tile()
+            mouse_click_tile_drag()
     else:
         if mouse['left_click_old'] != mouse['left_click_cur']:
             mouse['left_click_old'] = mouse['left_click_cur']
+            mouse_click_tile_drag_release()
 
 def mouse_right():
     mouse['right_click_cur'] = pygame.mouse.get_pressed()[2]
@@ -398,6 +283,7 @@ def mouse_right():
         if mouse['right_click_old'] != mouse['right_click_cur']:
             mouse['right_click_old'] = mouse['right_click_cur']
             mouse_clear_tile()
+            print('right click')
     else:
         if mouse['right_click_old'] != mouse['right_click_cur']:
             mouse['right_click_old'] = mouse['right_click_cur']
@@ -463,7 +349,7 @@ def draw_frame_assets_icons():
             asset = lib_assets.asset_get_by_id(assets_layer_cur, _id)
             if asset != {}:
                 image_filepath = asset['image_filepath']
-                pyimg = pyimg_by_filepath(image_filepath)
+                pyimg = lib_pyimgs.pyimg_by_filepath(pyimgs, image_filepath)
                 img = pygame.transform.scale(pyimg['image'], (pannel_assets['icon_size'], pannel_assets['icon_size']))
                 x = pannel_assets['x'] + pannel_assets['icon_size']*col_i
                 y = pannel_assets['y'] + pannel_assets['icon_size']*row_i
@@ -486,6 +372,83 @@ def draw_prompt_textarea():
     screen.blit(text_surface, (x+6, y+6))
     pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
 
+def draw_tiles_box_images():
+    for row_i in range(pannel_tiles_dragging['row_n']):
+        for col_i in range(pannel_tiles_dragging['col_n']):
+            index = lib_tiles.tile_get_index(pannel_tiles_dragging, row_i, col_i)
+            tile = tiles_dragging_list[index]
+            for i in range(len(assets_layers)): # draw all layers
+                image_filepath = tile[i]
+                if image_filepath != None:
+                    asset = lib_assets.asset_get_by_filepath(assets_layers, image_filepath)
+                    pyimg = lib_pyimgs.pyimg_by_filepath(pyimgs, image_filepath)
+                    img = pygame.transform.scale(
+                        pyimg['image'], 
+                        (pannel_tiles_dragging['tile_size']*asset['size_mul'], pannel_tiles_dragging['tile_size']*asset['size_mul'])
+                    )
+                    x = pannel_tiles_dragging['x'] + pannel_tiles_dragging['tile_size']*col_i + asset['x_offset']
+                    y = pannel_tiles_dragging['y'] + pannel_tiles_dragging['tile_size']*row_i + asset['y_offset']
+                    screen.blit(img, (x, y))
+
+
+# ;jump
+def draw_tiles_drag():
+    global tiles_dragging_list
+    if drag['dragging'] == True:
+        x1 = pannel_tiles['x']
+        y1 = pannel_tiles['y']
+        x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
+        y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
+        if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
+            x = drag['dragging_start_x']
+            y = drag['dragging_start_y']
+            w = mouse['x'] - drag['dragging_start_x']
+            h = mouse['y'] - drag['dragging_start_y']
+            pygame.draw.rect(screen, '#202020', pygame.Rect(x, y, w, h))
+            pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
+
+            tile_start_index = lib_tiles.tile_get_index_by_mouse_xy(pannel_tiles, x, y)
+            tile_end_index = lib_tiles.tile_get_index_by_mouse_pos(pannel_tiles, mouse)
+
+            tiles_dragging_list = lib_tiles.tiles_init(pannel_tiles)
+            # print(tile_start_index, tile_end_index)
+            '''
+            x1 = pannel_tiles['x']
+            y1 = pannel_tiles['y']
+            x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
+            y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
+            if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
+                tile_index = lib_tiles.tile_get_index_by_mouse_pos(pannel_tiles, mouse)
+                asset_i = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
+                asset_id = utils.format_id(asset_i)
+                tiles_list[tile_index][layer_cur] = f'assets/{assets_packs_foldernames[layer_cur]}/images/{asset_id}.png'
+            '''
+
+            asset_row_cur = pannel_assets['row_cur']
+            asset_col_cur = pannel_assets['col_cur']
+            for i in range(pannel_tiles_dragging['row_n']):
+                for j in range(pannel_tiles_dragging['col_n']):
+                    tile_index = i*pannel_tiles_dragging['col_n']+j
+                    if tile_index >= tile_start_index and tile_index <= tile_end_index:
+                        asset_i = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
+                        asset_id = utils.format_id(asset_i)
+                        tiles_dragging_list[tile_index][layer_cur] = f'assets/{assets_packs_foldernames[layer_cur]}/images/{asset_id}.png'
+                        print(tiles_dragging_list)
+                    '''
+                        img_path = pannel_assets['assets'][asset_row_cur][asset_col_cur]['image_filepath']
+                        level_map_tmp['tiles'][i][j][layer_cur] = img_path
+                        if img_path != None:
+                            img = get_pyimg_by_path(img_path)
+                            w = tile_size*camera['zoom']
+                            h = tile_size*camera['zoom']
+                            x = frame_center['x'] + w*j + camera['x']
+                            y = frame_center['y'] + h*i + camera['y']
+                            img = pygame.transform.scale(img, (w, h))
+                            screen.blit(img, (x, y))
+                    '''
+
+            draw_tiles_box_images()
+
 def draw_frame_center():
     x = frame_center['x']
     y = frame_center['y']
@@ -494,6 +457,7 @@ def draw_frame_center():
     pygame.draw.rect(screen, '#101010', (x, y, w, h))
     draw_tiles_grid()
     draw_tiles_images()
+    draw_tiles_drag()
 
 def draw_tiles_grid():
     for row_i in range(pannel_tiles['row_n']):
@@ -504,17 +468,16 @@ def draw_tiles_grid():
             h = pannel_tiles['tile_size']
             pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
 
-# ;jump
 def draw_tiles_images():
     for row_i in range(pannel_tiles['row_n']):
         for col_i in range(pannel_tiles['col_n']):
-            index = tile_index(row_i, col_i)
+            index = lib_tiles.tile_get_index(pannel_tiles, row_i, col_i)
             tile = tiles_list[index]
             for i in range(len(assets_layers)): # draw all layers
                 image_filepath = tile[i]
                 if image_filepath != None:
                     asset = lib_assets.asset_get_by_filepath(assets_layers, image_filepath)
-                    pyimg = pyimg_by_filepath(image_filepath)
+                    pyimg = lib_pyimgs.pyimg_by_filepath(pyimgs, image_filepath)
                     img = pygame.transform.scale(
                         pyimg['image'], 
                         (pannel_tiles['tile_size']*asset['size_mul'], pannel_tiles['tile_size']*asset['size_mul'])
@@ -523,7 +486,6 @@ def draw_tiles_images():
                     y = pannel_tiles['y'] + pannel_tiles['tile_size']*row_i + asset['y_offset']
                     screen.blit(img, (x, y))
 
-# ;jump
 def draw_asset_attr():
     row_i = pannel_assets['row_cur']
     col_i = pannel_assets['col_cur']

@@ -1,19 +1,121 @@
 [
     [
         {
-            "image_filepath": "assets/textures/images/0001.png",
+            "image_filepath": "assets/forest-grounds/images/0010.png",
             "x_offset": 0,
             "y_offset": 0,
             "size_mul": 1
         },
         {
-            "image_filepath": "assets/textures/images/0000.png",
+            "image_filepath": "assets/forest-grounds/images/0005.png",
             "x_offset": 0,
             "y_offset": 0,
             "size_mul": 1
         },
         {
-            "image_filepath": "assets/textures/images/0002.png",
+            "image_filepath": "assets/forest-grounds/images/0000.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-grounds/images/0006.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        }
+    ],
+    [
+        {
+            "image_filepath": "assets/forest-objects/images/0001.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0010.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0005.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0000.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0006.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        }
+    ],
+    [
+        {
+            "image_filepath": "assets/forest-objects/images/0001.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0010.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0005.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0000.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0006.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        }
+    ],
+    [
+        {
+            "image_filepath": "assets/forest-objects/images/0001.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0010.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0005.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0000.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/forest-objects/images/0006.png",
             "x_offset": 0,
             "y_offset": 0,
             "size_mul": 1
@@ -27,7 +129,19 @@
             "size_mul": 1
         },
         {
+            "image_filepath": "assets/characters/images/0010.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
             "image_filepath": "assets/characters/images/0005.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/characters/images/0007.png",
             "x_offset": 0,
             "y_offset": 0,
             "size_mul": 1
@@ -43,9 +157,24 @@
             "x_offset": 0,
             "y_offset": 0,
             "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/characters/images/0012.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/characters/images/0011.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
+        },
+        {
+            "image_filepath": "assets/characters/images/0002.png",
+            "x_offset": 0,
+            "y_offset": 0,
+            "size_mul": 1
         }
-    ],
-    [],
-    [],
-    []
+    ]
 ]
