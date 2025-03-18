@@ -13,11 +13,33 @@ def tile_get_index(pannel_tiles, row_i, col_i):
     index = row_i*pannel_tiles['col_n'] + col_i
     return index
 
+def tile_get_rc_by_mouse_pos(pannel_tiles, mouse):
+    mouse_rel_x = mouse['x'] - pannel_tiles['x']
+    mouse_rel_y = mouse['y'] - pannel_tiles['y']
+    row_i = mouse_rel_y // pannel_tiles['tile_size']
+    col_i = mouse_rel_x // pannel_tiles['tile_size']
+    return row_i, col_i
+
 def tile_get_index_by_mouse_pos(pannel_tiles, mouse):
     mouse_rel_x = mouse['x'] - pannel_tiles['x']
     mouse_rel_y = mouse['y'] - pannel_tiles['y']
     row_i = mouse_rel_y // pannel_tiles['tile_size']
     col_i = mouse_rel_x // pannel_tiles['tile_size']
+    index = tile_get_index(pannel_tiles, row_i, col_i)
+    return index
+
+def tile_get_rc_by_xy(pannel_tiles, x, y):
+    x = x - pannel_tiles['x']
+    y = y - pannel_tiles['y']
+    row_i = y // pannel_tiles['tile_size']
+    col_i = x // pannel_tiles['tile_size']
+    return row_i, col_i
+
+def tile_get_index_by_mouse_xy(pannel_tiles, x, y):
+    x = x - pannel_tiles['x']
+    y = y - pannel_tiles['y']
+    row_i = y // pannel_tiles['tile_size']
+    col_i = x // pannel_tiles['tile_size']
     index = tile_get_index(pannel_tiles, row_i, col_i)
     return index
 

@@ -391,8 +391,7 @@ def draw_tiles_box_images():
                     screen.blit(img, (x, y))
 
 
-# ;jump
-def draw_tiles_drag():
+def draw_tiles_drag_box():
     global tiles_dragging_list
     if drag['dragging'] == True:
         x1 = pannel_tiles['x']
@@ -407,47 +406,32 @@ def draw_tiles_drag():
             pygame.draw.rect(screen, '#202020', pygame.Rect(x, y, w, h))
             pygame.draw.rect(screen, '#ffffff', pygame.Rect(x, y, w, h), 1)
 
-            tile_start_index = lib_tiles.tile_get_index_by_mouse_xy(pannel_tiles, x, y)
-            tile_end_index = lib_tiles.tile_get_index_by_mouse_pos(pannel_tiles, mouse)
 
-            tiles_dragging_list = lib_tiles.tiles_init(pannel_tiles)
-            # print(tile_start_index, tile_end_index)
-            '''
-            x1 = pannel_tiles['x']
-            y1 = pannel_tiles['y']
-            x2 = pannel_tiles['x'] + pannel_tiles['tile_size']*pannel_tiles['col_n']
-            y2 = pannel_tiles['y'] + pannel_tiles['tile_size']*pannel_tiles['row_n']
-            if mouse['x'] >= x1 and mouse['y'] >= y1 and mouse['x'] < x2 and mouse['y'] < y2:
-                tile_index = lib_tiles.tile_get_index_by_mouse_pos(pannel_tiles, mouse)
-                asset_i = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
-                asset_id = utils.format_id(asset_i)
-                tiles_list[tile_index][layer_cur] = f'assets/{assets_packs_foldernames[layer_cur]}/images/{asset_id}.png'
-            '''
+# ;jump
+def draw_tiles_drag():
+    global tiles_dragging_list
+    draw_tiles_drag_box()
+    if drag['dragging'] == True:
+        x = drag['dragging_start_x']
+        y = drag['dragging_start_y']
+        tile_start_row_index, tile_start_col_index = lib_tiles.tile_get_rc_by_xy(pannel_tiles, x, y)
+        tile_end_row_index, tile_end_col_index = lib_tiles.tile_get_rc_by_mouse_pos(pannel_tiles, mouse)
 
-            asset_row_cur = pannel_assets['row_cur']
-            asset_col_cur = pannel_assets['col_cur']
-            for i in range(pannel_tiles_dragging['row_n']):
-                for j in range(pannel_tiles_dragging['col_n']):
+        tiles_dragging_list = lib_tiles.tiles_init(pannel_tiles)
+
+        for i in range(pannel_tiles_dragging['row_n']):
+            for j in range(pannel_tiles_dragging['col_n']):
+                if (i >= tile_start_row_index and 
+                    i <= tile_end_row_index and 
+                    j >= tile_start_col_index and 
+                    j <= tile_end_col_index 
+                    ):
                     tile_index = i*pannel_tiles_dragging['col_n']+j
-                    if tile_index >= tile_start_index and tile_index <= tile_end_index:
-                        asset_i = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
-                        asset_id = utils.format_id(asset_i)
-                        tiles_dragging_list[tile_index][layer_cur] = f'assets/{assets_packs_foldernames[layer_cur]}/images/{asset_id}.png'
-                        print(tiles_dragging_list)
-                    '''
-                        img_path = pannel_assets['assets'][asset_row_cur][asset_col_cur]['image_filepath']
-                        level_map_tmp['tiles'][i][j][layer_cur] = img_path
-                        if img_path != None:
-                            img = get_pyimg_by_path(img_path)
-                            w = tile_size*camera['zoom']
-                            h = tile_size*camera['zoom']
-                            x = frame_center['x'] + w*j + camera['x']
-                            y = frame_center['y'] + h*i + camera['y']
-                            img = pygame.transform.scale(img, (w, h))
-                            screen.blit(img, (x, y))
-                    '''
+                    asset_i = pannel_assets['row_cur']*pannel_assets['col_n']+pannel_assets['col_cur']
+                    asset_id = utils.format_id(asset_i)
+                    tiles_dragging_list[tile_index][layer_cur] = f'assets/{assets_packs_foldernames[layer_cur]}/images/{asset_id}.png'
 
-            draw_tiles_box_images()
+                draw_tiles_box_images()
 
 def draw_frame_center():
     x = frame_center['x']
