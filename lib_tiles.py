@@ -43,14 +43,6 @@ def tile_get_index_by_mouse_xy(pannel_tiles, x, y):
     index = tile_get_index(pannel_tiles, row_i, col_i)
     return index
 
-def tile_get_index_by_mouse_xy(pannel_tiles, x, y):
-    x = x - pannel_tiles['x']
-    y = y - pannel_tiles['y']
-    row_i = y // pannel_tiles['tile_size']
-    col_i = x // pannel_tiles['tile_size']
-    index = tile_get_index(pannel_tiles, row_i, col_i)
-    return index
-
 def map_save(tiles_list, assets_layers):
     utils.json_write(f'maps/0000.json', tiles_list)
     utils.json_write(f'maps/0000-assets-layers.json', assets_layers)

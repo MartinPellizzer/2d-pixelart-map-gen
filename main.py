@@ -250,6 +250,13 @@ def mouse_click_tile_drag():
 
 def mouse_click_tile_drag_release():
     drag['dragging'] = False
+    for i in range(pannel_tiles_dragging['row_n']):
+        for j in range(pannel_tiles_dragging['col_n']):
+            tile_i = lib_tiles.tile_get_index(pannel_tiles, i, j)
+            for layer_i in range(5):
+                img_filepath = tiles_dragging_list[tile_i][layer_i]
+                if img_filepath != None:
+                    tiles_list[tile_i][layer_i] = img_filepath
 
 def mouse_clear_tile():
     x1 = pannel_tiles['x']
